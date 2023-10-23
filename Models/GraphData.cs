@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LasAnalyzer.Models
 {
-    class GraphData
+    public class GraphData
     {
         public List<double> NearProbe { get; set; }
         public List<double> FarProbe { get; set; }

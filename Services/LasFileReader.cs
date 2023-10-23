@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LasAnalyzer.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,9 +10,11 @@ namespace LasAnalyzer.Services
 {
     public class LasFileReader
     {
-        public string OpenLasFile(string filePath)
+        public GraphData OpenLasFile(string filePath)
         {
-            return null;
+            DataGenerator dataGenerator = new DataGenerator();
+            var graphData = dataGenerator.GenerateGraphData(100);
+            return graphData;
         }
     }
 }

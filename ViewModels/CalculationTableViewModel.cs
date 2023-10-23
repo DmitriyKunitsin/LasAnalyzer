@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LasAnalyzer.ViewModels
 {
-    public class GraphViewModel : ViewModelBase
+    public class CalculationTableViewModel : ViewModelBase
     {
     }
 }

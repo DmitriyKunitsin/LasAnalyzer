@@ -8,6 +8,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using System;
+using LasAnalyzer.Models;
 
 namespace LasAnalyzer.ViewModels
 {
@@ -16,7 +17,7 @@ namespace LasAnalyzer.ViewModels
         private LasFileReader _lasFileReader;
 
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
-        private BehaviorSubject<string> _lasDataSubject = new BehaviorSubject<string>("");
+        private BehaviorSubject<GraphData> _lasDataSubject = new BehaviorSubject<GraphData>(null);
 
         public MainWindowViewModel()
         {
@@ -29,15 +30,15 @@ namespace LasAnalyzer.ViewModels
                 .ToProperty(this, x => x.LasData);
         }
 
-        public string LasData => _lasDataSubject.Value;
+        public GraphData LasData => _lasDataSubject.Value;
 
         private async Task<Unit> OpenLasFileAsync()
         {
             var file = await DoOpenFilePickerAsync();
             if (file is null) return Unit.Default;
 
-            string lasData = _lasFileReader.OpenLasFile(file.Path.AbsolutePath);
-            if (!string.IsNullOrEmpty(lasData))
+            var lasData = _lasFileReader.OpenLasFile(file.Path.AbsolutePath);
+            if (lasData is not null)
             {
                 _lasDataSubject.OnNext(lasData);
             }
