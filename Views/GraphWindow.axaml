@@ -7,27 +7,50 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LasAnalyzer.Views.GraphWindow"
 		x:DataType="local:GraphWindowViewModel"
-        Title="GraphWindow">
+        Title="GraphWindow" Width="1300" Height="1000">
 
 	<Window.DataContext>
 		<local:GraphWindowViewModel />
 	</Window.DataContext>
 
-	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-		<lvc:CartesianChart
-			Series="{Binding Series}"
-			Title="{Binding Title}">
-		</lvc:CartesianChart>
-		<lvc:CartesianChart
-			Series="{Binding FarProbeModel}">
-		</lvc:CartesianChart>
-		<lvc:CartesianChart
-			Series="{Binding FarToNearProbeRatioModel}">
-		</lvc:CartesianChart>
-		<lvc:CartesianChart
-			Series="{Binding TemperatureModel}">
-		</lvc:CartesianChart>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="60"/>
+		</Grid.RowDefinitions>
 
-		<Button Content="Update" Command="{Binding UpdateGraphs}" />
-	</StackPanel>
+		<Border Grid.Row="0">
+			<lvc:CartesianChart
+				Series="{Binding NearProbeSeries}"
+				Title="{Binding Title}"
+				ZoomMode="Both">
+			</lvc:CartesianChart>
+		</Border>
+
+		<Border Grid.Row="1">
+			<lvc:CartesianChart
+				Series="{Binding FarProbeSeries}"
+				ZoomMode="Both">
+			</lvc:CartesianChart>
+		</Border>
+
+		<Border Grid.Row="2">
+			<lvc:CartesianChart
+				Series="{Binding FarToNearProbeRatioSeries}"
+				ZoomMode="Both">
+			</lvc:CartesianChart>
+		</Border>
+
+		<Border Grid.Row="3">
+			<lvc:CartesianChart
+				Series="{Binding TemperatureSeries}"
+				ZoomMode="Both">
+			</lvc:CartesianChart>
+		</Border>
+
+		<Button Grid.Row="4" Content="Update" Command="{Binding UpdateGraphs}" />
+	</Grid>
 </Window>
