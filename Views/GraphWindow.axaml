@@ -13,7 +13,21 @@
 		<local:GraphWindowViewModel />
 	</Window.DataContext>
 
-	<lvc:CartesianChart
-        Series="{Binding PlotModel1}">
-	</lvc:CartesianChart>
+	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+		<lvc:CartesianChart
+			Series="{Binding Series}"
+			Title="{Binding Title}">
+		</lvc:CartesianChart>
+		<lvc:CartesianChart
+			Series="{Binding FarProbeModel}">
+		</lvc:CartesianChart>
+		<lvc:CartesianChart
+			Series="{Binding FarToNearProbeRatioModel}">
+		</lvc:CartesianChart>
+		<lvc:CartesianChart
+			Series="{Binding TemperatureModel}">
+		</lvc:CartesianChart>
+
+		<Button Content="Update" Command="{Binding UpdateGraphs}" />
+	</StackPanel>
 </Window>

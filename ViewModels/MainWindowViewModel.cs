@@ -9,25 +9,29 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using System;
 using LasAnalyzer.Models;
+using LasAnalyzer.Views;
+using System.Linq;
 
 namespace LasAnalyzer.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
         private LasFileReader _lasFileReader;
+        private BehaviorSubject<GraphData> _lasDataSubject = new BehaviorSubject<GraphData>(null);
 
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
-        private BehaviorSubject<GraphData> _lasDataSubject = new BehaviorSubject<GraphData>(null);
+        public ReactiveCommand<Unit, Unit> OpenGraphWindowCommand { get; }
 
         public MainWindowViewModel()
         {
             _lasFileReader = new LasFileReader();
 
-            OpenLasFileCommand = ReactiveCommand.CreateFromTask(OpenLasFileAsync);
-
             // Подписка на изменения в BehaviorSubject и привязка к свойству LasData
             _lasDataSubject
                 .ToProperty(this, x => x.LasData);
+
+            OpenLasFileCommand = ReactiveCommand.CreateFromTask(OpenLasFileAsync);
+            OpenGraphWindowCommand = ReactiveCommand.Create(OpenGraphWindow);
         }
 
         public GraphData LasData => _lasDataSubject.Value;
@@ -65,6 +69,21 @@ namespace LasAnalyzer.ViewModels
             });
 
             return files?.Count >= 1 ? files[0] : null;
+        }
+
+        private void OpenGraphWindow()
+        {
+            var graphWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).Windows.OfType<GraphWindow>().FirstOrDefault();
+
+            if (graphWindow == null)
+            {
+                graphWindow = new GraphWindow();
+                graphWindow.Show();
+            }
+            else
+            {
+                graphWindow.Activate();
+            }
         }
     }
 }
