@@ -11,6 +11,7 @@ using System;
 using LasAnalyzer.Models;
 using LasAnalyzer.Views;
 using System.Linq;
+using LiveChartsCore.Geo;
 
 namespace LasAnalyzer.ViewModels
 {
@@ -39,6 +40,15 @@ namespace LasAnalyzer.ViewModels
 
             OpenLasFileCommand = ReactiveCommand.CreateFromTask(OpenLasFileAsync);
             OpenGraphWindowCommand = ReactiveCommand.Create(OpenGraphWindow);
+
+            MessageBus.Current.Listen<GraphData>("GraphDataMessage")
+            .Subscribe(graphData => ReceiveGraphData(graphData));
+        }
+
+        private void ReceiveGraphData(GraphData graphData)
+        {
+            // todo: call this func
+            _lasDataSubject.OnNext(graphData);
         }
 
         private void OnDataUpdated()
@@ -55,7 +65,7 @@ namespace LasAnalyzer.ViewModels
             if (lasData is not null)
             {
                 _lasDataSubject.OnNext(lasData);
-                MessageBus.Current.SendMessage(lasData, "GraphDataMessage");
+                
                 OnDataUpdated();
             }
 

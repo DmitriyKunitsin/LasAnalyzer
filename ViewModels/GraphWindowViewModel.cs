@@ -51,9 +51,35 @@ namespace LasAnalyzer.ViewModels
 
         public GraphWindowViewModel()
         {
-            MessageBus.Current.Listen<GraphData>("GraphDataMessage")
-            .Subscribe(graphData => ReceiveGraphData(graphData));
+            MessageBus.Current.SendMessage(LasData, "GraphDataMessage");
 
+            NearProbeSeries = new ISeries[]
+            {
+                new LineSeries<double>()
+            };
+
+            FarProbeSeries = new ISeries[]
+            {
+                new LineSeries<double>()
+            };
+
+            FarToNearProbeRatioSeries = new ISeries[]
+            {
+                new LineSeries<double>()
+            };
+
+            TemperatureSeries = new ISeries[]
+            {
+                new LineSeries<double>()
+            };
+
+            UpdateGraphs = ReactiveCommand.CreateFromObservable(UpdateGraphData);
+        }
+
+        
+
+        private IObservable<Unit> UpdateGraphData()
+        {
             NearProbeSeries = new ISeries[]
             {
                 new LineSeries<double> { Values = _lasData.NearProbe }
@@ -74,30 +100,19 @@ namespace LasAnalyzer.ViewModels
                 new LineSeries<double> { Values = _lasData.Temperature }
             };
 
-            UpdateGraphs = ReactiveCommand.CreateFromObservable(UpdateGraphData);
-        }
-
-        private void ReceiveGraphData(GraphData graphData)
-        {
-            // todo: call this func
-            _lasData = graphData;
-        }
-
-        private IObservable<Unit> UpdateGraphData()
-        {
             ///
-            var xData = _lasData.Time; // Ваши данные по оси X
-            var yData = _lasData.NearProbe; // Ваши данные по оси Y
+            //var xData = _lasData.Time; // Ваши данные по оси X
+            //var yData = _lasData.NearProbe; // Ваши данные по оси Y
 
-            var updatedSeries = new ISeries[]
-            {
-                new LineSeries<double>
-                {
-                    Values = yData,
-                }
-            };
+            //var updatedSeries = new ISeries[]
+            //{
+            //    new LineSeries<double>
+            //    {
+            //        Values = yData,
+            //    }
+            //};
 
-            NearProbeSeries = updatedSeries;
+            //NearProbeSeries = updatedSeries;
 
             // Верните Unit для завершения команды
             return Observable.Return(Unit.Default);
