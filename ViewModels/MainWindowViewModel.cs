@@ -19,6 +19,8 @@ namespace LasAnalyzer.ViewModels
         private LasFileReader _lasFileReader;
         private BehaviorSubject<GraphData> _lasDataSubject = new BehaviorSubject<GraphData>(null);
 
+        public GraphData LasData => _lasDataSubject.Value;
+
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGraphWindowCommand { get; }
 
@@ -34,7 +36,7 @@ namespace LasAnalyzer.ViewModels
             OpenGraphWindowCommand = ReactiveCommand.Create(OpenGraphWindow);
         }
 
-        public GraphData LasData => _lasDataSubject.Value;
+        
 
         private async Task<Unit> OpenLasFileAsync()
         {
