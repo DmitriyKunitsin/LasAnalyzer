@@ -19,10 +19,15 @@ namespace LasAnalyzer.ViewModels
         private LasFileReader _lasFileReader;
         private BehaviorSubject<GraphData> _lasDataSubject = new BehaviorSubject<GraphData>(null);
 
-        public GraphData LasData => _lasDataSubject.Value;
+        public GraphData LasData
+        {
+            get => _lasDataSubject.Value;
+        }
 
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGraphWindowCommand { get; }
+
+        public event EventHandler DataUpdated;
 
         public MainWindowViewModel()
         {
@@ -36,7 +41,10 @@ namespace LasAnalyzer.ViewModels
             OpenGraphWindowCommand = ReactiveCommand.Create(OpenGraphWindow);
         }
 
-        
+        private void OnDataUpdated()
+        {
+            DataUpdated?.Invoke(this, EventArgs.Empty);
+        }
 
         private async Task<Unit> OpenLasFileAsync()
         {
@@ -47,6 +55,8 @@ namespace LasAnalyzer.ViewModels
             if (lasData is not null)
             {
                 _lasDataSubject.OnNext(lasData);
+                MessageBus.Current.SendMessage(lasData, "GraphDataMessage");
+                OnDataUpdated();
             }
 
             return Unit.Default;

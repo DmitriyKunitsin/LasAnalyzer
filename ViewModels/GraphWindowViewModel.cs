@@ -15,12 +15,14 @@ using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using LiveChartsCore.SkiaSharpView.VisualElements;
+using LasAnalyzer.Models;
+using LiveChartsCore.Geo;
 
 namespace LasAnalyzer.ViewModels
 {
     public class GraphWindowViewModel : ViewModelBase
     {
-        private DataGenerator dataGenerator;
+        private GraphData _lasData;
 
         public ISeries[] NearProbeSeries { get; set; }
         public ISeries[] FarProbeSeries { get; set; }
@@ -36,55 +38,56 @@ namespace LasAnalyzer.ViewModels
             Paint = new SolidColorPaint(SKColors.DarkSlateGray)
         };
 
+        public GraphData LasData
+        {
+            get => _lasData;
+            set => this.RaiseAndSetIfChanged(ref _lasData, value);
+        }
+
+        public event EventHandler DataUpdated;
+
+        public ReactiveCommand<Unit, Unit> UpdateGraphs { get; set; }
+
+
         public GraphWindowViewModel()
         {
-            dataGenerator = new DataGenerator();
-
-            var newData = dataGenerator.GenerateGraphData(100);
+            MessageBus.Current.Listen<GraphData>("GraphDataMessage")
+            .Subscribe(graphData => ReceiveGraphData(graphData));
 
             NearProbeSeries = new ISeries[]
             {
-                new LineSeries<double>
-                {
-                    Values = newData.NearProbe,
-                }
+                new LineSeries<double> { Values = _lasData.NearProbe }
             };
 
             FarProbeSeries = new ISeries[]
             {
-                new LineSeries<double>
-                {
-                    Values = newData.FarProbe,
-                }
+                new LineSeries<double> { Values = _lasData.FarProbe }
             };
 
             FarToNearProbeRatioSeries = new ISeries[]
             {
-                new LineSeries<double>
-                {
-                    Values = newData.FarToNearProbeRatio,
-                }
+                new LineSeries<double> { Values = _lasData.FarToNearProbeRatio }
             };
 
             TemperatureSeries = new ISeries[]
             {
-                new LineSeries<double>
-                {
-                    Values = newData.Temperature,
-                }
+                new LineSeries<double> { Values = _lasData.Temperature }
             };
 
             UpdateGraphs = ReactiveCommand.CreateFromObservable(UpdateGraphData);
         }
 
-        public ReactiveCommand<Unit, Unit> UpdateGraphs { get; set; }
+        private void ReceiveGraphData(GraphData graphData)
+        {
+            // todo: call this func
+            _lasData = graphData;
+        }
 
         private IObservable<Unit> UpdateGraphData()
         {
-            var newData = dataGenerator.GenerateGraphData(100);
-
-            var xData = newData.Time; // Ваши данные по оси X
-            var yData = newData.NearProbe; // Ваши данные по оси Y
+            ///
+            var xData = _lasData.Time; // Ваши данные по оси X
+            var yData = _lasData.NearProbe; // Ваши данные по оси Y
 
             var updatedSeries = new ISeries[]
             {

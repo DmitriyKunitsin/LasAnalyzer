@@ -28,8 +28,8 @@
 
 
   <ItemGroup>
-    <Compile Update="Views\CalculationTableWindow.axaml.cs">
-      <DependentUpon>CalculationTableWindow.axaml</DependentUpon>
+    <Compile Update="Views\ResultTableWindow.axaml.cs">
+      <DependentUpon>ResultTableWindow.axaml</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>
