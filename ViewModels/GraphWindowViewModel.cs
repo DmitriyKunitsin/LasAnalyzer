@@ -51,7 +51,8 @@ namespace LasAnalyzer.ViewModels
 
         public GraphWindowViewModel()
         {
-            MessageBus.Current.SendMessage(LasData, "GraphDataMessage");
+            MessageBus.Current.Listen<GraphData>("GraphDataMessage")
+            .Subscribe(graphData => ReceiveGraphData(graphData));
 
             NearProbeSeries = new ISeries[]
             {
@@ -76,7 +77,30 @@ namespace LasAnalyzer.ViewModels
             UpdateGraphs = ReactiveCommand.CreateFromObservable(UpdateGraphData);
         }
 
-        
+        private void ReceiveGraphData(GraphData graphData)
+        {
+            _lasData = graphData;
+
+            NearProbeSeries = new ISeries[]
+            {
+                new LineSeries<double> { Values = _lasData.NearProbe }
+            };
+
+            FarProbeSeries = new ISeries[]
+            {
+                new LineSeries<double> { Values = _lasData.FarProbe }
+            };
+
+            FarToNearProbeRatioSeries = new ISeries[]
+            {
+                new LineSeries<double> { Values = _lasData.FarToNearProbeRatio }
+            };
+
+            TemperatureSeries = new ISeries[]
+            {
+                new LineSeries<double> { Values = _lasData.Temperature }
+            };
+        }
 
         private IObservable<Unit> UpdateGraphData()
         {

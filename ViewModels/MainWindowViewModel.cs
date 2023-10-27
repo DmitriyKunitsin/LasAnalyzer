@@ -12,27 +12,52 @@ using LasAnalyzer.Models;
 using LasAnalyzer.Views;
 using System.Linq;
 using LiveChartsCore.Geo;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
+using LiveChartsCore.SkiaSharpView.VisualElements;
+using System.Collections.Generic;
+using System.IO;
+using System.Drawing;
 
 namespace LasAnalyzer.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
         private LasFileReader _lasFileReader;
+        private DocxWriter _docxWriter;
+
         private BehaviorSubject<GraphData> _lasDataSubject = new BehaviorSubject<GraphData>(null);
+
+        private SeriesData _seriesData;
 
         public GraphData LasData
         {
             get => _lasDataSubject.Value;
         }
 
+        public SeriesData SeriesData
+        {
+            get => _seriesData;
+            set => this.RaiseAndSetIfChanged(ref _seriesData, value);
+        }
+        public LabelVisual Title { get; set; } =
+        new LabelVisual
+        {
+            Text = "My chart title",
+            TextSize = 25,
+            Padding = new LiveChartsCore.Drawing.Padding(15),
+            Paint = new SolidColorPaint(SKColors.DarkSlateGray)
+        };
+
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGraphWindowCommand { get; }
-
-        public event EventHandler DataUpdated;
 
         public MainWindowViewModel()
         {
             _lasFileReader = new LasFileReader();
+            _docxWriter = new DocxWriter();
 
             // Подписка на изменения в BehaviorSubject и привязка к свойству LasData
             _lasDataSubject
@@ -43,17 +68,47 @@ namespace LasAnalyzer.ViewModels
 
             MessageBus.Current.Listen<GraphData>("GraphDataMessage")
             .Subscribe(graphData => ReceiveGraphData(graphData));
+
+            SeriesData = new SeriesData();
         }
 
         private void ReceiveGraphData(GraphData graphData)
         {
-            // todo: call this func
             _lasDataSubject.OnNext(graphData);
         }
 
-        private void OnDataUpdated()
+        private void CreateAndSaveReport()
         {
-            DataUpdated?.Invoke(this, EventArgs.Empty);
+            var graphs = new List<Graph>();
+            // todo: complete this
+            ReportModel ReportModel = new ReportModel()
+            {
+                SerialNumber = "12312312",
+                DeviceType = "gg nn",
+                TestDate = "11.22.33",
+                NearProbeThreshold = 0,
+                FarProbeThreshold = 0,
+                Graphs = new List<Graph>(), ///
+                Results = new List<Result>(), ///
+                Conclusion = "> < 5 %"
+            };
+            _docxWriter.CreateReport(ReportModel, Directory.GetCurrentDirectory());
+        }
+
+        private void OpenGraphWindow()
+        {
+            var graphWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).Windows.OfType<GraphWindow>().FirstOrDefault();
+
+            if (graphWindow == null)
+            {
+                graphWindow = new GraphWindow();
+                MessageBus.Current.SendMessage(LasData, "GraphDataMessage");
+                graphWindow.Show();
+            }
+            else
+            {
+                graphWindow.Activate();
+            }
         }
 
         private async Task<Unit> OpenLasFileAsync()
@@ -65,8 +120,8 @@ namespace LasAnalyzer.ViewModels
             if (lasData is not null)
             {
                 _lasDataSubject.OnNext(lasData);
-                
-                OnDataUpdated();
+
+                SeriesData = new SeriesData(lasData);
             }
 
             return Unit.Default;
@@ -91,21 +146,6 @@ namespace LasAnalyzer.ViewModels
             });
 
             return files?.Count >= 1 ? files[0] : null;
-        }
-
-        private void OpenGraphWindow()
-        {
-            var graphWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).Windows.OfType<GraphWindow>().FirstOrDefault();
-
-            if (graphWindow == null)
-            {
-                graphWindow = new GraphWindow();
-                graphWindow.Show();
-            }
-            else
-            {
-                graphWindow.Activate();
-            }
         }
     }
 }

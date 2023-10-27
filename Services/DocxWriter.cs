@@ -40,10 +40,10 @@ namespace LasAnalyzer.Services
                 for (int i = 0; i < report.Results.Count; i++)
                 {
                     table.Rows[i].Cells[0].Paragraphs.First().InsertText(report.Results[i].Num.ToString());
-                    table.Rows[i].Cells[0].Paragraphs.First().InsertText(report.Results[i].Formula);
-                    table.Rows[i].Cells[0].Paragraphs.First().InsertText(report.Results[i].NearProbe.ToString());
-                    table.Rows[i].Cells[0].Paragraphs.First().InsertText(report.Results[i].FarProbe.ToString());
-                    table.Rows[i].Cells[0].Paragraphs.First().InsertText(report.Results[i].FarToNearProbeRatio.ToString());
+                    table.Rows[i].Cells[1].Paragraphs.First().InsertText(report.Results[i].Formula);
+                    table.Rows[i].Cells[2].Paragraphs.First().InsertText(report.Results[i].NearProbe.ToString());
+                    table.Rows[i].Cells[3].Paragraphs.First().InsertText(report.Results[i].FarProbe.ToString());
+                    table.Rows[i].Cells[4].Paragraphs.First().InsertText(report.Results[i].FarToNearProbeRatio.ToString());
                 }
                 document.InsertTable(table);
                 document.InsertParagraph();

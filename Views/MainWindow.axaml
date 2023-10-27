@@ -3,22 +3,108 @@
         xmlns:vm="using:LasAnalyzer.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="600"
+		xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="LasAnalyzer.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="LasAnalyzer" Width="300" Height="600">
+        Title="LasAnalyzer" Width="1600" Height="900">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-		<Button Content="Open LAS File" Command="{Binding OpenLasFileCommand}"/>
-		<Button Content="Показать графики" Command="{Binding OpenGraphWindowCommand}"/>
-		<TextBox Text="{Binding LasData}" TextWrapping="Wrap" IsReadOnly="True" Margin="10"/>
-	</StackPanel>
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="200"/>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="4"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+		
+		
+	    <StackPanel Grid.Column="0" Grid.RowSpan="5"  HorizontalAlignment="Center" VerticalAlignment="Center">
+		    <Button Content="Open LAS File" Command="{Binding OpenLasFileCommand}"/>
+		    <!--<Button Content="Показать графики" Command="{Binding OpenGraphWindowCommand}"/>-->
+		    <!--<TextBox Text="{Binding LasData}" TextWrapping="Wrap" IsReadOnly="True" Margin="10"/>-->
+	    </StackPanel>
+		<Grid Grid.Column="1">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="60"/>
+			</Grid.RowDefinitions>
+			<Border Grid.Row="0" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding SeriesData.NearProbeSeries}"
+					Title="{Binding Title}"
+					ZoomMode="Both">
+				</lvc:CartesianChart>
+			</Border>
+
+			<Border Grid.Row="1" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding SeriesData.FarProbeSeries}"
+					ZoomMode="Both">
+				</lvc:CartesianChart>
+			</Border>
+
+			<Border Grid.Row="2" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding SeriesData.FarToNearProbeRatioSeries}"
+					ZoomMode="Both">
+				</lvc:CartesianChart>
+			</Border>
+
+			<Border Grid.Row="3" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding SeriesData.TemperatureSeries}"
+					ZoomMode="Both">
+				</lvc:CartesianChart>
+			</Border>
+		</Grid>
+
+		<GridSplitter Grid.Column="2" Background="Black" ResizeDirection="Columns"/>
+
+		<Grid Grid.Column="3">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="60"/>
+			</Grid.RowDefinitions>
+			<Border Grid.Row="0" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding SeriesData.NearProbeSeries}"
+					Title="{Binding Title}"
+					ZoomMode="Both">
+				</lvc:CartesianChart>
+			</Border>
+
+			<Border Grid.Row="1" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding SeriesData.FarProbeSeries}"
+					ZoomMode="Both">
+				</lvc:CartesianChart>
+			</Border>
+
+			<Border Grid.Row="2" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding SeriesData.FarToNearProbeRatioSeries}"
+					ZoomMode="Both">
+				</lvc:CartesianChart>
+			</Border>
+
+			<Border Grid.Row="3" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding SeriesData.TemperatureSeries}"
+					ZoomMode="Both">
+				</lvc:CartesianChart>
+			</Border>
+		</Grid>
+	</Grid>
 
 </Window>

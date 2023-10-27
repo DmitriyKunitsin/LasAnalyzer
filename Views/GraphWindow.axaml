@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LasAnalyzer.Views.GraphWindow"
 		x:DataType="local:GraphWindowViewModel"
-        Title="GraphWindow" Width="1300" Height="1000">
+        Title="GraphWindow" Width="1300" Height="900">
 
 	<Window.DataContext>
 		<local:GraphWindowViewModel />
