@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace LasAnalyzer.Models
 {
-    public class Graph
+    public class TitleData
     {
-        public string Title { get; set; }
-        public List<double> Data { get; set; }
     }
 }

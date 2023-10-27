@@ -53,6 +53,7 @@ namespace LasAnalyzer.ViewModels
 
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGraphWindowCommand { get; }
+        public ReactiveCommand<Unit, Unit> CreateAndSaveReportCommand { get; }
 
         public MainWindowViewModel()
         {
@@ -65,6 +66,7 @@ namespace LasAnalyzer.ViewModels
 
             OpenLasFileCommand = ReactiveCommand.CreateFromTask(OpenLasFileAsync);
             OpenGraphWindowCommand = ReactiveCommand.Create(OpenGraphWindow);
+            CreateAndSaveReportCommand = ReactiveCommand.Create(CreateAndSaveReport);
 
             MessageBus.Current.Listen<GraphData>("GraphDataMessage")
             .Subscribe(graphData => ReceiveGraphData(graphData));
@@ -79,7 +81,6 @@ namespace LasAnalyzer.ViewModels
 
         private void CreateAndSaveReport()
         {
-            var graphs = new List<Graph>();
             // todo: complete this
             ReportModel ReportModel = new ReportModel()
             {
@@ -88,8 +89,8 @@ namespace LasAnalyzer.ViewModels
                 TestDate = "11.22.33",
                 NearProbeThreshold = 0,
                 FarProbeThreshold = 0,
-                Graphs = new List<Graph>(), ///
-                Results = new List<Result>(), ///
+                Graphs = LasData, ///
+                Results = new List<Result>() { new Result() }, ///
                 Conclusion = "> < 5 %"
             };
             _docxWriter.CreateReport(ReportModel, Directory.GetCurrentDirectory());

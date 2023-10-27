@@ -26,12 +26,12 @@ namespace LasAnalyzer.Services
                 document.InsertParagraph("4. Пороги: RSD – " + report.NearProbeThreshold + " мВ, RLD – " + report.FarProbeThreshold + " мВ");
                 document.InsertParagraph();
 
-                foreach (var graph in report.Graphs)
-                {
-                    document.InsertParagraph(graph.Title).Bold();
-                    document.InsertChart(graph.Data);
-                    document.InsertParagraph();
-                }
+                //document.InsertParagraph(graph.Title).Bold();
+                //CreateChart(document, report.Graphs.NearProbe);
+                //CreateChart(document, report.Graphs.FarProbe);
+                //CreateChart(document, report.Graphs.FarToNearProbeRatio);
+                //CreateChart(document, report.Graphs.Temperature);
+                document.InsertParagraph();
 
                 document.InsertParagraph("9. Результаты");
                 var table = document.AddTable(report.Results.Count, 5);
@@ -53,6 +53,22 @@ namespace LasAnalyzer.Services
 
                 document.Save();
             }
+        }
+
+        private void CreateChart(DocX document, List<double> graphData)
+        {
+            // Create a line chart.
+            var lineChart = document.AddChart<LineChart>();
+            lineChart.AddLegend(ChartLegendPosition.Right, false);
+
+            // Create and add series by binding X and Y.
+            var series = new Series("RSD");
+            series.Bind(graphData, "X-Axis", "Y-Axis");
+            lineChart.AddSeries(series);
+
+            // Insert chart into document
+            document.InsertChart(lineChart);
+            
         }
     }
 }

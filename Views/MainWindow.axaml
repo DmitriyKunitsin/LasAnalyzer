@@ -26,6 +26,7 @@
 	    <StackPanel Grid.Column="0" Grid.RowSpan="5"  HorizontalAlignment="Center" VerticalAlignment="Center">
 		    <Button Content="Open LAS File" Command="{Binding OpenLasFileCommand}"/>
 		    <!--<Button Content="Показать графики" Command="{Binding OpenGraphWindowCommand}"/>-->
+			<Button Content="Сохранить в документ" Command="{Binding CreateAndSaveReportCommand}"/>
 		    <!--<TextBox Text="{Binding LasData}" TextWrapping="Wrap" IsReadOnly="True" Margin="10"/>-->
 	    </StackPanel>
 		<Grid Grid.Column="1">
