@@ -20,6 +20,8 @@ using LiveChartsCore.SkiaSharpView.VisualElements;
 using System.Collections.Generic;
 using System.IO;
 using System.Drawing;
+using LiveChartsCore.Drawing;
+using LiveChartsCore.SkiaSharpView.SKCharts;
 
 namespace LasAnalyzer.ViewModels
 {
@@ -81,6 +83,30 @@ namespace LasAnalyzer.ViewModels
 
         private void CreateAndSaveReport()
         {
+            // todo: use "var chartControl = this.FindControl<CartesianChart>("cartesianChart");"
+            // for exist chart
+            var cartesianChart = new SKCartesianChart
+            {
+                Width = 900,
+                Height = 600,
+                Series = new ISeries[]
+                {
+                    new LineSeries<double> { Values = LasData.NearProbe },
+                },
+                Title = new LabelVisual
+                {
+                    Text = "Hello LiveCharts",
+                    TextSize = 30,
+                    Padding = new Padding(15),
+                    Paint = new SolidColorPaint(0xff303030)
+                },
+                LegendPosition = LiveChartsCore.Measure.LegendPosition.Right,
+                Background = SKColors.White
+            };
+
+            var image = cartesianChart.GetImage();
+            var chartData = image.Encode().ToArray();
+
             // todo: complete this
             ReportModel ReportModel = new ReportModel()
             {
@@ -89,11 +115,11 @@ namespace LasAnalyzer.ViewModels
                 TestDate = "11.22.33",
                 NearProbeThreshold = 0,
                 FarProbeThreshold = 0,
-                Graphs = LasData, ///
+                Graphs = chartData, ///
                 Results = new List<Result>() { new Result() }, ///
                 Conclusion = "> < 5 %"
             };
-            _docxWriter.CreateReport(ReportModel, Directory.GetCurrentDirectory());
+            _docxWriter.CreateReport(ReportModel, Directory.GetCurrentDirectory() + "\\out.docx");
         }
 
         private void OpenGraphWindow()

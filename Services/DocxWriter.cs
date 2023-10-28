@@ -3,11 +3,13 @@ using LasAnalyzer.Models;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xceed.Document.NET;
 using Xceed.Words.NET;
+using Avalonia.Media.Imaging;
 
 namespace LasAnalyzer.Services
 {
@@ -31,6 +33,10 @@ namespace LasAnalyzer.Services
                 //CreateChart(document, report.Graphs.FarProbe);
                 //CreateChart(document, report.Graphs.FarToNearProbeRatio);
                 //CreateChart(document, report.Graphs.Temperature);
+                InsertChartImageToDocX(document, report.Graphs);
+                //InsertChartImageToDocX(document, report.Graphs);
+                //InsertChartImageToDocX(document, report.Graphs);
+                //InsertChartImageToDocX(document, report.Graphs);
                 document.InsertParagraph();
 
                 document.InsertParagraph("9. Результаты");
@@ -53,6 +59,16 @@ namespace LasAnalyzer.Services
 
                 document.Save();
             }
+        }
+
+        private void InsertChartImageToDocX(DocX document, byte[] imageBytes)
+        {
+            var image = document.AddImage(new MemoryStream(imageBytes));
+            Picture picture = image.CreatePicture();
+            // Задайте размер и позицию изображения по вашим требованиям
+            picture.Width = 400;
+            picture.Height = 300;
+            document.InsertParagraph().AppendPicture(picture);
         }
 
         private void CreateChart(DocX document, List<double> graphData)
