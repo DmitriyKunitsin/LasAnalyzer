@@ -9,8 +9,12 @@ using System.Threading.Tasks;
 
 namespace LasAnalyzer.Services
 {
-    public class DataProcessor
+    public class ChartProcessor
     {
+        public List<double> smoothData(List<double> Data)
+        {
+            return Data;
+        }
         public PlotModel CreateLineChart(List<double> xData, List<double> yData, string title, string xTitle, string yTitle)
         {
             var model = new PlotModel { Title = title };

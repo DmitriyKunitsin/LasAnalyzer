@@ -22,6 +22,7 @@ using System.IO;
 using System.Drawing;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.SkiaSharpView.SKCharts;
+using System.Drawing.Imaging;
 
 namespace LasAnalyzer.ViewModels
 {
@@ -81,31 +82,30 @@ namespace LasAnalyzer.ViewModels
             _lasDataSubject.OnNext(graphData);
         }
 
+        
         private void CreateAndSaveReport()
         {
-            // todo: use "var chartControl = this.FindControl<CartesianChart>("cartesianChart");"
-            // for exist chart
-            var cartesianChart = new SKCartesianChart
+            var tempType = getTempType();
+            var windowSize = getWindowSize();
+            if (LasDataForGamma is not null)
             {
-                Width = 900,
-                Height = 600,
-                Series = new ISeries[]
-                {
-                    new LineSeries<double> { Values = LasData.NearProbe },
-                },
-                Title = new LabelVisual
-                {
-                    Text = "Hello LiveCharts",
-                    TextSize = 30,
-                    Padding = new Padding(15),
-                    Paint = new SolidColorPaint(0xff303030)
-                },
-                LegendPosition = LiveChartsCore.Measure.LegendPosition.Right,
-                Background = SKColors.White
-            };
+                SaveReport(LasDataForGamma, "RSD", "RLD");
+            }
+            if (LasDataForNeutronic is not null)
+            {
+                SaveReport(LasDataForNeutronic, "NTNC", "FTNC");
+            }
+        }
 
-            var image = cartesianChart.GetImage();
-            var chartData = image.Encode().ToArray();
+        private void SaveReport(GraphData lasData, string nearProbeTitle, string farProbeTitle)
+        {
+            List<byte[]> chartImageDatas = new List<byte[]>()
+                {
+                    createChartImage(lasData.NearProbe, nearProbeTitle),
+                    createChartImage(lasData.FarProbe, farProbeTitle),
+                    createChartImage(lasData.FarToNearProbeRatio, $"{nearProbeTitle}/{farProbeTitle}"),
+                    createChartImage(lasData.Temperature, "TEMPER")
+                };
 
             // todo: complete this
             ReportModel ReportModel = new ReportModel()
@@ -115,11 +115,49 @@ namespace LasAnalyzer.ViewModels
                 TestDate = "11.22.33",
                 NearProbeThreshold = 0,
                 FarProbeThreshold = 0,
-                Graphs = chartData, ///
-                Results = new List<Result>() { new Result() }, ///
+                Graphs = chartImageDatas,
+                Results = CalculatorWrapper(lasData),
                 Conclusion = "> < 5 %"
             };
             _docxWriter.CreateReport(ReportModel, Directory.GetCurrentDirectory() + "\\out.docx");
+        }
+
+        private (List<Result>, List<Result>) CalculatorWrapper(GraphData lasData)
+        {
+            var calculator = new Calculator();
+            var tableList = new List<List<Result>>();
+
+            if (processHeatingControl.isChecked)
+                tableList.Add(calculator.CalculateMetrics(lasData, TempType.Heating, windowSize));
+
+            if (processCoolingControl.isChecked)
+                tableList.Add(calculator.CalculateMetrics(lasData, TempType.Cooling, windowSize));
+
+            return tableList;
+        }
+
+        private byte[] createChartImage(List<double> data, string title)
+        {
+            var cartesianChart = new SKCartesianChart
+            {
+                Width = 1000,
+                Height = 400,
+                Series = new ISeries[]
+                {
+                    new LineSeries<double> { Values = data },
+                },
+                Title = new LabelVisual
+                {
+                    Text = title,
+                    TextSize = 30,
+                    Padding = new Padding(15),
+                    Paint = new SolidColorPaint(0xff303030)
+                },
+                LegendPosition = LiveChartsCore.Measure.LegendPosition.Right,
+                Background = SKColors.White
+            };
+
+            return cartesianChart.GetImage().Encode().ToArray();
         }
 
         private void OpenGraphWindow()

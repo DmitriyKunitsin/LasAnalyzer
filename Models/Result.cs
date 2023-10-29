@@ -13,5 +13,13 @@ namespace LasAnalyzer.Models
         public double NearProbe { get; set; }
         public double FarProbe { get; set; }
         public double FarToNearProbeRatio { get; set; }
+        public Temperatures? Temperatures { get; set; }
+    }
+
+    public class Temperatures
+    {
+        public double NearProbe { get; set; }
+        public double FarProbe { get; set; }
+        public double FarToNearProbeRatio { get; set; }
     }
 }

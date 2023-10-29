@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LasAnalyzer.Models
 {
-    enum TempType
+    public enum TempType
     {
         Heating,
         Cooling

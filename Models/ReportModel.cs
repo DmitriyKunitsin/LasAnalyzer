@@ -13,8 +13,8 @@ namespace LasAnalyzer.Models
         public string TestDate { get; set; }
         public double NearProbeThreshold { get; set; }
         public double FarProbeThreshold { get; set; }
-        public byte[] Graphs { get; set; }
-        public List<Result> Results { get; set; }
+        public List<byte[]> Graphs { get; set; }
+        public (List<Result>, List<Result>) Results { get; set; }
         public string Conclusion { get; set; }
     }
 }
