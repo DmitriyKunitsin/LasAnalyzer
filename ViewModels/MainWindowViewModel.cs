@@ -23,6 +23,7 @@ using System.Drawing;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.SkiaSharpView.SKCharts;
 using System.Drawing.Imaging;
+using LiveChartsCore.SkiaSharpView.Avalonia;
 
 namespace LasAnalyzer.ViewModels
 {
@@ -31,26 +32,85 @@ namespace LasAnalyzer.ViewModels
         private LasFileReader _lasFileReader;
         private DocxWriter _docxWriter;
 
-        private BehaviorSubject<GraphData> _lasDataSubject = new BehaviorSubject<GraphData>(null);
+        private SeriesData _seriesDataForGamma;
+        private SeriesData _seriesDataForNeutronic;
 
-        private SeriesData _seriesData;
+        private int windowSize;
+        private int smoothingIterations;
+        private bool isHeatingSelected;
+        private bool isCoolingSelected;
+        private bool isGammaSelected;
+        private bool isNeutronicSelected;
 
-        public GraphData LasData
+        public GraphData LasDataForGamma { get; set; }
+        public GraphData LasDataForNeutronic { get; set; }
+
+        public SeriesData SeriesDataForGamma
         {
-            get => _lasDataSubject.Value;
+            get => _seriesDataForGamma;
+            set => this.RaiseAndSetIfChanged(ref _seriesDataForGamma, value);
         }
 
-        public SeriesData SeriesData
+        public SeriesData SeriesDataForNeutronic
         {
-            get => _seriesData;
-            set => this.RaiseAndSetIfChanged(ref _seriesData, value);
+            get => _seriesDataForNeutronic;
+            set => this.RaiseAndSetIfChanged(ref _seriesDataForNeutronic, value);
         }
+
+        public Axis[] XAxes { get; set; } =
+        {
+            new Axis
+            {
+                CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
+                CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
+                CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
+                //Labeler = value => value.ToString("N2"),
+                CrosshairSnapEnabled = true
+            }
+        };
+
+        public int WindowSize
+        {
+            get => windowSize;
+            set => this.RaiseAndSetIfChanged(ref windowSize, value);
+        }
+
+        public int SmoothingIterations
+        {
+            get => smoothingIterations;
+            set => this.RaiseAndSetIfChanged(ref smoothingIterations, value);
+        }
+
+        public bool IsHeatingSelected
+        {
+            get => isHeatingSelected;
+            set => this.RaiseAndSetIfChanged(ref isHeatingSelected, value);
+        }
+
+        public bool IsCoolingSelected
+        {
+            get => isCoolingSelected;
+            set => this.RaiseAndSetIfChanged(ref isCoolingSelected, value);
+        }
+
+        public bool IsGammaSelected
+        {
+            get => isGammaSelected;
+            set => this.RaiseAndSetIfChanged(ref isGammaSelected, value);
+        }
+
+        public bool IsNeutronicSelected
+        {
+            get => isNeutronicSelected;
+            set => this.RaiseAndSetIfChanged(ref isNeutronicSelected, value);
+        }
+
         public LabelVisual Title { get; set; } =
         new LabelVisual
         {
             Text = "My chart title",
             TextSize = 25,
-            Padding = new LiveChartsCore.Drawing.Padding(15),
+            Padding = new Padding(15),
             Paint = new SolidColorPaint(SKColors.DarkSlateGray)
         };
 
@@ -63,101 +123,45 @@ namespace LasAnalyzer.ViewModels
             _lasFileReader = new LasFileReader();
             _docxWriter = new DocxWriter();
 
-            // Подписка на изменения в BehaviorSubject и привязка к свойству LasData
-            _lasDataSubject
-                .ToProperty(this, x => x.LasData);
-
             OpenLasFileCommand = ReactiveCommand.CreateFromTask(OpenLasFileAsync);
             OpenGraphWindowCommand = ReactiveCommand.Create(OpenGraphWindow);
             CreateAndSaveReportCommand = ReactiveCommand.Create(CreateAndSaveReport);
 
             MessageBus.Current.Listen<GraphData>("GraphDataMessage")
-            .Subscribe(graphData => ReceiveGraphData(graphData));
+            .Subscribe(graphData => ReceiveGraphData(graphData)); ///
 
-            SeriesData = new SeriesData();
+            SeriesDataForGamma = new SeriesData();
+            SeriesDataForNeutronic = new SeriesData();
+
+            //var cartesianChart1 = new CartesianChart();
+            //cartesianChart1.AxisX.Add(new Axis
+            //{
+            //    Sections = new SectionsCollection
+            //    {
+            //        axisSection
+            //    }
+            //});
+
+            WindowSize = 60;
+            SmoothingIterations = 3;
+            IsHeatingSelected = true;
+            IsCoolingSelected = true;
+            IsGammaSelected = true;
         }
 
         private void ReceiveGraphData(GraphData graphData)
         {
-            _lasDataSubject.OnNext(graphData);
+            LasDataForGamma = graphData; ///
         }
-
         
         private void CreateAndSaveReport()
         {
-            var tempType = getTempType();
-            var windowSize = getWindowSize();
-            if (LasDataForGamma is not null)
-            {
-                SaveReport(LasDataForGamma, "RSD", "RLD");
-            }
-            if (LasDataForNeutronic is not null)
-            {
-                SaveReport(LasDataForNeutronic, "NTNC", "FTNC");
-            }
-        }
-
-        private void SaveReport(GraphData lasData, string nearProbeTitle, string farProbeTitle)
-        {
-            List<byte[]> chartImageDatas = new List<byte[]>()
-                {
-                    createChartImage(lasData.NearProbe, nearProbeTitle),
-                    createChartImage(lasData.FarProbe, farProbeTitle),
-                    createChartImage(lasData.FarToNearProbeRatio, $"{nearProbeTitle}/{farProbeTitle}"),
-                    createChartImage(lasData.Temperature, "TEMPER")
-                };
-
-            // todo: complete this
-            ReportModel ReportModel = new ReportModel()
-            {
-                SerialNumber = "12312312",
-                DeviceType = "gg nn",
-                TestDate = "11.22.33",
-                NearProbeThreshold = 0,
-                FarProbeThreshold = 0,
-                Graphs = chartImageDatas,
-                Results = CalculatorWrapper(lasData),
-                Conclusion = "> < 5 %"
-            };
-            _docxWriter.CreateReport(ReportModel, Directory.GetCurrentDirectory() + "\\out.docx");
-        }
-
-        private (List<Result>, List<Result>) CalculatorWrapper(GraphData lasData)
-        {
-            var calculator = new Calculator();
-            var tableList = new List<List<Result>>();
-
-            if (processHeatingControl.isChecked)
-                tableList.Add(calculator.CalculateMetrics(lasData, TempType.Heating, windowSize));
-
-            if (processCoolingControl.isChecked)
-                tableList.Add(calculator.CalculateMetrics(lasData, TempType.Cooling, windowSize));
-
-            return tableList;
-        }
-
-        private byte[] createChartImage(List<double> data, string title)
-        {
-            var cartesianChart = new SKCartesianChart
-            {
-                Width = 1000,
-                Height = 400,
-                Series = new ISeries[]
-                {
-                    new LineSeries<double> { Values = data },
-                },
-                Title = new LabelVisual
-                {
-                    Text = title,
-                    TextSize = 30,
-                    Padding = new Padding(15),
-                    Paint = new SolidColorPaint(0xff303030)
-                },
-                LegendPosition = LiveChartsCore.Measure.LegendPosition.Right,
-                Background = SKColors.White
-            };
-
-            return cartesianChart.GetImage().Encode().ToArray();
+            _docxWriter.CreateAndSaveReport(
+                LasDataForGamma,
+                LasDataForNeutronic,
+                IsHeatingSelected,
+                IsCoolingSelected,
+                WindowSize);
         }
 
         private void OpenGraphWindow()
@@ -167,7 +171,7 @@ namespace LasAnalyzer.ViewModels
             if (graphWindow == null)
             {
                 graphWindow = new GraphWindow();
-                MessageBus.Current.SendMessage(LasData, "GraphDataMessage");
+                MessageBus.Current.SendMessage(LasDataForGamma, "GraphDataMessage");
                 graphWindow.Show();
             }
             else
@@ -182,11 +186,13 @@ namespace LasAnalyzer.ViewModels
             if (file is null) return Unit.Default;
 
             var lasData = _lasFileReader.OpenLasFile(file.Path.AbsolutePath);
-            if (lasData is not null)
+            if (lasData.Item1 is not null)
             {
-                _lasDataSubject.OnNext(lasData);
+                LasDataForGamma = lasData.Item1;
+                LasDataForNeutronic = lasData.Item2;
 
-                SeriesData = new SeriesData(lasData);
+                SeriesDataForGamma = new SeriesData(lasData.Item1);
+                SeriesDataForNeutronic = new SeriesData(lasData.Item2);
             }
 
             return Unit.Default;

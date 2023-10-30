@@ -10,11 +10,12 @@ namespace LasAnalyzer.Services
 {
     public class LasFileReader
     {
-        public GraphData OpenLasFile(string filePath)
+        public (GraphData, GraphData) OpenLasFile(string filePath)
         {
             DataGenerator dataGenerator = new DataGenerator();
-            var graphData = dataGenerator.GenerateGraphData(100);
-            return graphData;
+            var graphDataForGamma = dataGenerator.GenerateGraphData(100);
+            var graphDataForNeutronic = dataGenerator.GenerateGraphData(100);
+            return (graphDataForGamma, graphDataForNeutronic);
         }
     }
 }

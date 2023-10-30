@@ -21,14 +21,38 @@
 			<ColumnDefinition Width="4"/>
 			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
+
+		<Grid Grid.Column="0">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>
+			
+			<StackPanel Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Center">
+				<TextBlock Text="Размер окна:" VerticalAlignment="Center"/>
+				<TextBox Text="{Binding WindowSize, Mode=TwoWay}" Width="40"/>
+				<TextBlock Text="Кол-во прим сглаж:" VerticalAlignment="Center"/>
+				<TextBox Text="{Binding SmoothingIterations, Mode=TwoWay}" Width="40"/>
+				<TextBlock Text="Обрабатывать:" VerticalAlignment="Center"/>
+				<CheckBox Content="Нагрев" IsChecked="{Binding IsHeatingSelected, Mode=TwoWay}"/>
+				<CheckBox Content="Охлаждение" IsChecked="{Binding IsCoolingSelected, Mode=TwoWay}"/>
+			</StackPanel>
+
+			<StackPanel Grid.Row="1" HorizontalAlignment="Center">
+				<TextBlock Text="Сохранить данные:" VerticalAlignment="Center"/>
+				<RadioButton Content="Gamma" IsChecked="{Binding IsGammaSelected, Mode=TwoWay}"/>
+				<RadioButton Content="Neutronic" IsChecked="{Binding IsNeutronicSelected, Mode=TwoWay}"/>
+			</StackPanel>
 		
+			<StackPanel Grid.Row="2" HorizontalAlignment="Center">
+				<Button Content="Открыть LAS File" Command="{Binding OpenLasFileCommand}"/>
+				<!--<Button Content="Показать графики" Command="{Binding OpenGraphWindowCommand}"/>-->
+				<!--<Button Content="Показать расчеты" Command="{Binding OpenResultTableWindowCommand}"/>-->
+				<Button Content="Сохранить в документ" Command="{Binding CreateAndSaveReportCommand}"/>
+			</StackPanel>
+		</Grid>
 		
-	    <StackPanel Grid.Column="0" Grid.RowSpan="5"  HorizontalAlignment="Center" VerticalAlignment="Center">
-		    <Button Content="Open LAS File" Command="{Binding OpenLasFileCommand}"/>
-		    <!--<Button Content="Показать графики" Command="{Binding OpenGraphWindowCommand}"/>-->
-			<Button Content="Сохранить в документ" Command="{Binding CreateAndSaveReportCommand}"/>
-		    <!--<TextBox Text="{Binding LasData}" TextWrapping="Wrap" IsReadOnly="True" Margin="10"/>-->
-	    </StackPanel>
 		<Grid Grid.Column="1">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="*"/>
@@ -37,9 +61,11 @@
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="60"/>
 			</Grid.RowDefinitions>
+			
 			<Border Grid.Row="0" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesData.NearProbeSeries}"
+					Series="{Binding SeriesDataForGamma.NearProbeSeries}"
+					XAxes="{Binding XAxes}"
 					Title="{Binding Title}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
@@ -47,21 +73,23 @@
 
 			<Border Grid.Row="1" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesData.FarProbeSeries}"
+					Series="{Binding SeriesDataForGamma.FarProbeSeries}"
+					XAxes="{Binding XAxes}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="2" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesData.FarToNearProbeRatioSeries}"
+					Series="{Binding SeriesDataForGamma.FarToNearProbeRatioSeries}"
+					XAxes="{Binding XAxes}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="3" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesData.TemperatureSeries}"
+					Series="{Binding SeriesDataForGamma.TemperatureSeries}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
@@ -77,9 +105,10 @@
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="60"/>
 			</Grid.RowDefinitions>
+			
 			<Border Grid.Row="0" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesData.NearProbeSeries}"
+					Series="{Binding SeriesDataForNeutronic.NearProbeSeries}"
 					Title="{Binding Title}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
@@ -87,21 +116,21 @@
 
 			<Border Grid.Row="1" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesData.FarProbeSeries}"
+					Series="{Binding SeriesDataForNeutronic.FarProbeSeries}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="2" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesData.FarToNearProbeRatioSeries}"
+					Series="{Binding SeriesDataForNeutronic.FarToNearProbeRatioSeries}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="3" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesData.TemperatureSeries}"
+					Series="{Binding SeriesDataForNeutronic.TemperatureSeries}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>

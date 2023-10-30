@@ -9,7 +9,7 @@ namespace LasAnalyzer.Services
 {
     public class Calculator
     {
-        public List<Result> CalculateMetrics(GraphData graphData, TempType tempType, int windowSize)
+        public ResultTable CalculateMetrics(GraphData graphData, TempType tempType, int windowSize)
         {
             var indexForBaseValue = Utils.FindIndexForBaseValue(graphData.Temperature, tempType, windowSize);
 
@@ -38,9 +38,14 @@ namespace LasAnalyzer.Services
                 minPercent
             };
 
-            results = setFormulas(results, graphData.Temperature[indexForBaseValue.Value]);
+            var resultTable = new ResultTable()
+            {
+                Results = results,
+                TempType = tempType,
+                TemperBase = graphData.Temperature[indexForBaseValue.Value]
+            };
 
-            return results;
+            return resultTable;
         }
 
         private Result InitializeBaseValues(GraphData graphData, TempType tempType, int indexForBaseValue)
@@ -132,25 +137,6 @@ namespace LasAnalyzer.Services
             result.FarToNearProbeRatio = differences.FarToNearProbeRatio / baseValues.FarToNearProbeRatio;
 
             return result;
-        }
-
-        private List<Result> setFormulas(List<Result> results, double baseTemper)
-        {
-            // suda lu4we ne smotret
-            results[0].Formula = $"N(T={baseTemper})";
-            results[1].Formula = "MAX/T";
-            results[2].Formula = "MIN/T";
-            results[3].Formula = $"MAX - N(T={baseTemper})";
-            results[4].Formula = $"N(T={baseTemper}) - MIN";
-            results[5].Formula = "% MAX";
-            results[6].Formula = "% MIN";
-
-            for (int i = 0; i < 7; i++)
-            {
-                results[i].Num = i + 1;
-            }
-
-            return results;
         }
     }
 }
