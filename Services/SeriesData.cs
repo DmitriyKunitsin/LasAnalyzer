@@ -2,6 +2,8 @@
 using LiveChartsCore;
 using LiveChartsCore.Geo;
 using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,20 +46,68 @@ namespace LasAnalyzer.Services
         {
             NearProbeSeries = new ISeries[]
             {
-                    new LineSeries<double> { Values = graphData.NearProbe }
+                    new LineSeries<double>
+                    {
+                        Values = graphData.NearProbe,
+                        GeometryStroke = null,
+                        GeometryFill = null,
+                        Fill = null,
+                        Stroke = new SolidColorPaint
+                        {
+                            Color = SKColors.BlueViolet,
+                            StrokeThickness = 3,
+                            ZIndex = 1
+                        },
+                        ZIndex = 1,
+                    }
                 };
             FarProbeSeries = new ISeries[]
             {
-                    new LineSeries<double> { Values = graphData.FarProbe }
+                    new LineSeries<double>
+                    {
+                        Values = graphData.FarProbe,
+                        GeometryStroke = null,
+                        GeometryFill = null,
+                        Fill = null,
+                        Stroke = new SolidColorPaint
+                        {
+                            Color = SKColors.BlueViolet,
+                            StrokeThickness = 3,
+                        },
+                        LineSmoothness = 0
+                    }
             };
 
             FarToNearProbeRatioSeries = new ISeries[]
             {
-                    new LineSeries<double> { Values = graphData.FarToNearProbeRatio }
+                    new LineSeries<double>
+                    {
+                        Values = graphData.FarToNearProbeRatio,
+                        GeometryStroke = null,
+                        GeometryFill = null,
+                        Fill = null,
+                        Stroke = new SolidColorPaint
+                        {
+                            Color = SKColors.BlueViolet,
+                            StrokeThickness = 3,
+                            ZIndex = 1
+                        }
+                    }
             };
             TemperatureSeries = new ISeries[]
             {
-                    new LineSeries<double> { Values = graphData.Temperature }
+                    new LineSeries<double>
+                    {
+                        Values = graphData.Temperature,
+                        GeometryStroke = null,
+                        GeometryFill = null,
+                        Fill = null,
+                        Stroke = new SolidColorPaint
+                        {
+                            Color = SKColors.BlueViolet,
+                            StrokeThickness = 3,
+                        }
+                    }
             };
         }
     }

@@ -10,8 +10,8 @@ namespace LasAnalyzer.Services
         {
             var graphData = new GraphData
             {
-                NearProbe = GenerateRandomData(dataPoints, minValue: 80, maxValue: 100),
-                FarProbe = GenerateRandomData(dataPoints, minValue: 80, maxValue: 100),
+                NearProbe = GenerateRandomData(dataPoints, minValue: 1500, maxValue: 2000),
+                FarProbe = GenerateRandomData(dataPoints, minValue: 2000, maxValue: 2500),
                 FarToNearProbeRatio = GenerateRandomData(dataPoints, minValue: 1, maxValue: 2),
                 Temperature = GenerateRandomData(dataPoints, minValue: 20, maxValue: 120),
                 Time = GenerateTimeData(dataPoints, intervalSeconds: 60)

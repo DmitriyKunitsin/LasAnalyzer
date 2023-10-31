@@ -30,6 +30,8 @@ using System.Reflection;
 using LiveChartsCore.Kernel.Events;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView.Drawing;
+using LiveChartsCore.SkiaSharpView.Painting.Effects;
+using LiveChartsCore.Measure;
 
 namespace LasAnalyzer.ViewModels
 {
@@ -169,7 +171,29 @@ namespace LasAnalyzer.ViewModels
             PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
 
             InvisibleX = new[] { new Axis { IsVisible = true } };
-            InvisibleY = new[] { new Axis { IsVisible = true } };
+            YAxis = new[] 
+            { new Axis
+                {
+                }
+            };
+            ScrollableAxes = new[] { new Axis() };
+
+            Thumbs = new[]
+            {
+                new RectangularSection
+                {
+                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
+                    Xi = 0,
+                    Xj = 0,
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.Red,
+                        StrokeThickness = 3,
+                        ZIndex = 2
+                    }
+                }
+            };
+
 
             WindowSize = 60;
             SmoothingIterations = 3;
@@ -179,28 +203,44 @@ namespace LasAnalyzer.ViewModels
         }
         private Axis[] invisibleX;
         private Axis[] invisibleY;
+        private Axis[] scrollableAxes;
+        private RectangularSection[] thumbs;
 
         public Axis[] InvisibleX
         {
             get => invisibleX;
             set => this.RaiseAndSetIfChanged(ref invisibleX, value);
         }
-        public Axis[] InvisibleY
+        public Axis[] YAxis
         {
             get => invisibleY;
             set => this.RaiseAndSetIfChanged(ref invisibleY, value);
         }
+        public RectangularSection[] Thumbs
+        {
+            get => thumbs;
+            set => this.RaiseAndSetIfChanged(ref thumbs, value);
+        }
+
+        public Axis[] ScrollableAxes
+        {
+            get => scrollableAxes;
+            set => this.RaiseAndSetIfChanged(ref scrollableAxes, value);
+        }
 
         private bool isDragging = false;
         private LvcPointD lastPointerPosition;
-        private double x1 = 10; // Начальные координаты вертикальных линий
-        private double x2 = 20;
 
         private void PointerDown(PointerCommandArgs args)
         {
             isDragging = true;
             var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
             lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
+            var thumb = Thumbs[0];
+
+            // update the scroll bar thumb when the user is dragging the chart
+            thumb.Xi = lastPointerPosition.X;
+            thumb.Xj = lastPointerPosition.X;
         }
 
         private void PointerMove(PointerCommandArgs args)
@@ -208,18 +248,17 @@ namespace LasAnalyzer.ViewModels
             if (!isDragging) return;
 
             var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
-            var positionInData = chart.ScalePixelsToData(args.PointerPosition);
+            var lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
 
-            var xScale = x1 - x2; // Замените на ваши значения
+            var thumb = Thumbs[0];
 
-            if (Math.Abs(positionInData.X - lastPointerPosition.X) > 0)
-            {
-                var deltaX = (positionInData.X - lastPointerPosition.X) / xScale;
-                x1 += deltaX;
-                x2 += deltaX;
-            }
+            // update the scroll bar thumb when the user is dragging the chart
+            thumb.Xi = lastPointerPosition.X;
+            thumb.Xj = lastPointerPosition.X;
 
-            lastPointerPosition = positionInData;
+            // update the chart visible range
+            //ScrollableAxes[0].MinLimit = thumb.Xi;
+            //ScrollableAxes[0].MaxLimit = thumb.Xj;
         }
 
         private void PointerUp(PointerCommandArgs args)
@@ -271,6 +310,15 @@ namespace LasAnalyzer.ViewModels
 
                 SeriesDataForGamma = new SeriesData(lasData.Item1);
                 SeriesDataForNeutronic = new SeriesData(lasData.Item2);
+
+                YAxis = new[]
+                {
+                    new Axis
+                    {
+                        //MaxLimit = LasDataForGamma.NearProbe.Max() * 1.1,
+                        MinLimit = LasDataForGamma.NearProbe.Min() * 0.9
+                    }
+                };
             }
 
             return Unit.Default;

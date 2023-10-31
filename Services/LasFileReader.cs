@@ -13,8 +13,8 @@ namespace LasAnalyzer.Services
         public (GraphData, GraphData) OpenLasFile(string filePath)
         {
             DataGenerator dataGenerator = new DataGenerator();
-            var graphDataForGamma = dataGenerator.GenerateGraphData(100);
-            var graphDataForNeutronic = dataGenerator.GenerateGraphData(100);
+            var graphDataForGamma = dataGenerator.GenerateGraphData(1000);
+            var graphDataForNeutronic = dataGenerator.GenerateGraphData(1000);
             return (graphDataForGamma, graphDataForNeutronic);
         }
     }
