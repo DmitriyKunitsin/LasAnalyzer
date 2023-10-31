@@ -65,16 +65,19 @@
 			<Border Grid.Row="0" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding SeriesDataForGamma.NearProbeSeries}"
-					XAxes="{Binding XAxes}"
 					Title="{Binding Title}"
-					ZoomMode="Both">
+					XAxes="{Binding InvisibleX}"
+					YAxes="{Binding InvisibleY}"
+					PointerMoveCommand="{Binding PointerMoveCommand}"
+					PointerPressedCommand="{Binding PointerDownCommand}"
+					PointerReleasedCommand="{Binding PointerUpCommand}"
+					TooltipPosition="Hidden">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="1" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding SeriesDataForGamma.FarProbeSeries}"
-					XAxes="{Binding XAxes}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
@@ -82,7 +85,6 @@
 			<Border Grid.Row="2" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding SeriesDataForGamma.FarToNearProbeRatioSeries}"
-					XAxes="{Binding XAxes}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>

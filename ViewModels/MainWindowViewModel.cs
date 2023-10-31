@@ -24,6 +24,12 @@ using LiveChartsCore.Drawing;
 using LiveChartsCore.SkiaSharpView.SKCharts;
 using System.Drawing.Imaging;
 using LiveChartsCore.SkiaSharpView.Avalonia;
+using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
+using Avalonia.Input;
+using System.Reflection;
+using LiveChartsCore.Kernel.Events;
+using LiveChartsCore.Kernel.Sketches;
+using LiveChartsCore.SkiaSharpView.Drawing;
 
 namespace LasAnalyzer.ViewModels
 {
@@ -57,17 +63,17 @@ namespace LasAnalyzer.ViewModels
             set => this.RaiseAndSetIfChanged(ref _seriesDataForNeutronic, value);
         }
 
-        public Axis[] XAxes { get; set; } =
-        {
-            new Axis
-            {
-                CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
-                CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
-                CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
-                //Labeler = value => value.ToString("N2"),
-                CrosshairSnapEnabled = true
-            }
-        };
+        //public Axis[] XAxes { get; set; } =
+        //{
+        //    new Axis
+        //    {
+        //        CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
+        //        CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
+        //        CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
+        //        //Labeler = value => value.ToString("N2"),
+        //        CrosshairSnapEnabled = true
+        //    }
+        //};
 
         public int WindowSize
         {
@@ -114,9 +120,34 @@ namespace LasAnalyzer.ViewModels
             Paint = new SolidColorPaint(SKColors.DarkSlateGray)
         };
 
+        private LineGeometry line;
+        public LineGeometry Line
+        {
+            get => line;
+            set => this.RaiseAndSetIfChanged(ref line, value);
+        }
+
+        private double _xSection;
+        private double _ySection;
+        public double XSection
+        {
+            get => _xSection;
+            set => this.RaiseAndSetIfChanged(ref _xSection, value);
+        }
+
+        public double YSection
+        {
+            get => _ySection;
+            set => this.RaiseAndSetIfChanged(ref _ySection, value);
+        }
+
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGraphWindowCommand { get; }
         public ReactiveCommand<Unit, Unit> CreateAndSaveReportCommand { get; }
+
+        public ReactiveCommand<PointerCommandArgs, Unit> PointerDownCommand { get; }
+        public ReactiveCommand<PointerCommandArgs, Unit> PointerMoveCommand { get; }
+        public ReactiveCommand<PointerCommandArgs, Unit> PointerUpCommand { get; }
 
         public MainWindowViewModel()
         {
@@ -133,20 +164,67 @@ namespace LasAnalyzer.ViewModels
             SeriesDataForGamma = new SeriesData();
             SeriesDataForNeutronic = new SeriesData();
 
-            //var cartesianChart1 = new CartesianChart();
-            //cartesianChart1.AxisX.Add(new Axis
-            //{
-            //    Sections = new SectionsCollection
-            //    {
-            //        axisSection
-            //    }
-            //});
+            PointerDownCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerDown);
+            PointerMoveCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerMove);
+            PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
+
+            InvisibleX = new[] { new Axis { IsVisible = true } };
+            InvisibleY = new[] { new Axis { IsVisible = true } };
 
             WindowSize = 60;
             SmoothingIterations = 3;
             IsHeatingSelected = true;
             IsCoolingSelected = true;
             IsGammaSelected = true;
+        }
+        private Axis[] invisibleX;
+        private Axis[] invisibleY;
+
+        public Axis[] InvisibleX
+        {
+            get => invisibleX;
+            set => this.RaiseAndSetIfChanged(ref invisibleX, value);
+        }
+        public Axis[] InvisibleY
+        {
+            get => invisibleY;
+            set => this.RaiseAndSetIfChanged(ref invisibleY, value);
+        }
+
+        private bool isDragging = false;
+        private LvcPointD lastPointerPosition;
+        private double x1 = 10; // Начальные координаты вертикальных линий
+        private double x2 = 20;
+
+        private void PointerDown(PointerCommandArgs args)
+        {
+            isDragging = true;
+            var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
+            lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
+        }
+
+        private void PointerMove(PointerCommandArgs args)
+        {
+            if (!isDragging) return;
+
+            var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
+            var positionInData = chart.ScalePixelsToData(args.PointerPosition);
+
+            var xScale = x1 - x2; // Замените на ваши значения
+
+            if (Math.Abs(positionInData.X - lastPointerPosition.X) > 0)
+            {
+                var deltaX = (positionInData.X - lastPointerPosition.X) / xScale;
+                x1 += deltaX;
+                x2 += deltaX;
+            }
+
+            lastPointerPosition = positionInData;
+        }
+
+        private void PointerUp(PointerCommandArgs args)
+        {
+            isDragging = false;
         }
 
         private void ReceiveGraphData(GraphData graphData)
