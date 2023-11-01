@@ -9,6 +9,7 @@ namespace LasAnalyzer.Models
     public enum TempType
     {
         Heating,
-        Cooling
+        Cooling,
+        Both
     }
 }

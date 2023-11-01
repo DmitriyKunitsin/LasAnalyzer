@@ -101,7 +101,7 @@ namespace LasAnalyzer.Services
             var maxHeatPoint = calculator.FindExtremum(graphData.NearProbe, baseHeatIndex.Value, baseHeatValues.NearProbe, isMax: true);
             var minHeatPoint = calculator.FindExtremum(graphData.NearProbe, baseHeatIndex.Value, baseHeatValues.NearProbe, isMax: false);
 
-            FindBaseValues
+            FindBaseValues();
             return new ExtremumPoints();
         }
 
