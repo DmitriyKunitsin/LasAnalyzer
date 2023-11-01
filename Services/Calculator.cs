@@ -11,15 +11,15 @@ namespace LasAnalyzer.Services
     {
         public ResultTable CalculateMetrics(GraphData graphData, TempType tempType, int windowSize)
         {
-            var indexForBaseValue = Utils.FindIndexForBaseValue(graphData.Temperature, tempType, windowSize);
+            var baseIndex = Utils.FindIndexForBaseValue(graphData.Temperature, tempType, windowSize);
 
-            if (indexForBaseValue is null)
+            if (baseIndex is null)
                 return null;
 
-            var baseValues = InitializeBaseValues(graphData, tempType, indexForBaseValue.Value);
+            var baseValues = InitializeBaseValues(graphData, tempType, baseIndex.Value);
 
-            var maxExtrema = GetExtremums(graphData, baseValues, graphData.Temperature[indexForBaseValue.Value]);
-            var minExtrema = GetExtremums(graphData, baseValues, graphData.Temperature[indexForBaseValue.Value], isMax: false);
+            var maxExtrema = GetExtremums(graphData, baseValues, baseIndex.Value);
+            var minExtrema = GetExtremums(graphData, baseValues, baseIndex.Value, isMax: false);
 
             var maxDif = GetDifferences(baseValues, maxExtrema);
             var minDif = GetDifferences(baseValues, minExtrema);
@@ -42,13 +42,13 @@ namespace LasAnalyzer.Services
             {
                 Results = results,
                 TempType = tempType,
-                TemperBase = graphData.Temperature[indexForBaseValue.Value]
+                TemperBase = graphData.Temperature[baseIndex.Value]
             };
 
             return resultTable;
         }
 
-        private Result InitializeBaseValues(GraphData graphData, TempType tempType, int indexForBaseValue)
+        public Result InitializeBaseValues(GraphData graphData, TempType tempType, int indexForBaseValue)
         {
             var result = new Result();
 
@@ -71,7 +71,7 @@ namespace LasAnalyzer.Services
             return result;
         }
 
-        private Result GetExtremums(GraphData graphData, Result baseValues, double temperBase, bool isMax = true)
+        private Result GetExtremums(GraphData graphData, Result baseValues, int baseIndex, bool isMax = true)
         {
             var result = new Result();
 
@@ -80,36 +80,35 @@ namespace LasAnalyzer.Services
             result.Num = isMax ? 2 : 3;
             result.Formula = isMax ? "MAX/T" : "MIN/T";
 
-            var extremWithTemper = FindExtremum(graphData.NearProbe, graphData.Temperature, baseValues.NearProbe, temperBase, isMax);
-            result.NearProbe = extremWithTemper.Item1;
-            temperatures.NearProbe = extremWithTemper.Item2;
+            var extremPoint = FindExtremum(graphData.NearProbe, baseIndex, baseValues.NearProbe, isMax);
+            result.NearProbe = extremPoint.Item2;
+            temperatures.NearProbe = graphData.Temperature[extremPoint.Item1];
 
-            extremWithTemper = FindExtremum(graphData.FarProbe, graphData.Temperature, baseValues.FarProbe, temperBase, isMax);
-            result.FarProbe = extremWithTemper.Item1;
-            temperatures.FarProbe = extremWithTemper.Item2;
+            extremPoint = FindExtremum(graphData.FarProbe, baseIndex, baseValues.FarProbe, isMax);
+            result.FarProbe = extremPoint.Item2;
+            temperatures.FarProbe = graphData.Temperature[extremPoint.Item1];
 
-            extremWithTemper = FindExtremum(graphData.FarToNearProbeRatio, graphData.Temperature, baseValues.FarToNearProbeRatio, temperBase, isMax);
-            result.FarToNearProbeRatio = extremWithTemper.Item1;
-            temperatures.FarToNearProbeRatio = extremWithTemper.Item2;
+            extremPoint = FindExtremum(graphData.FarToNearProbeRatio, baseIndex, baseValues.FarToNearProbeRatio, isMax);
+            result.FarToNearProbeRatio = extremPoint.Item2;
+            temperatures.FarToNearProbeRatio = graphData.Temperature[extremPoint.Item1];
 
             result.Temperatures = temperatures;
 
             return result;
         }
 
-        private (double, double) FindExtremum(List<double> probePoints, List<double> temper, double probeBase, double temperBase, bool isMax = true)
+        public (int, double) FindExtremum(List<double> probePoints, int baseIndex, double baseValue, bool isMax = true)
         {
             var extremumIndex = isMax ? probePoints.IndexOf(probePoints.Max()) : probePoints.IndexOf(probePoints.Min());
             var extremum = probePoints[extremumIndex];
-            var temperValue = temper[extremumIndex];
 
-            if (CalculateDeviation(extremum, probeBase))
+            if (CalculateDeviation(extremum, baseValue))
             {
-                extremum = probeBase;
-                temperValue = temperBase;
+                extremumIndex = baseIndex;
+                extremum = baseValue;
             }
 
-            return (extremum, temperValue);
+            return (extremumIndex, extremum);
         }
 
         private bool CalculateDeviation(double value, double baseValue, double threshold = 0.005)

@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace LasAnalyzer.Models
 {
-    public class Graph
+    internal class ExtremumPoints
     {
-        public string Title { get; set; }
-        public List<double> Data { get; set; }
     }
 }

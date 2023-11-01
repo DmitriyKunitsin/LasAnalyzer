@@ -27,6 +27,7 @@
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 			
 			<StackPanel Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Center">
@@ -36,16 +37,24 @@
 				<TextBox Text="{Binding SmoothingIterations, Mode=TwoWay}" Width="40"/>
 				<TextBlock Text="Обрабатывать:" VerticalAlignment="Center"/>
 				<CheckBox Content="Нагрев" IsChecked="{Binding IsHeatingSelected, Mode=TwoWay}"/>
+				<StackPanel>
+					<TextBlock Text="Макс: " VerticalAlignment="Center"/>
+					<TextBox Text="{Binding MaxValue}" Width="40"/>
+					<TextBlock Text="Мин: " VerticalAlignment="Center"/>
+					<TextBox Text="{Binding MinValue}" Width="40"/>
+					<Button Content="Изменить" Command="{Binding ChangePointCommand}" Width="80"/>
+					<Button Content="Принять" Command="{Binding AcceptPointCommand}" Width="80"/>
+				</StackPanel>
 				<CheckBox Content="Охлаждение" IsChecked="{Binding IsCoolingSelected, Mode=TwoWay}"/>
 			</StackPanel>
 
-			<StackPanel Grid.Row="1" HorizontalAlignment="Center">
+			<StackPanel Grid.Row="2" HorizontalAlignment="Center">
 				<TextBlock Text="Сохранить данные:" VerticalAlignment="Center"/>
 				<RadioButton Content="Gamma" IsChecked="{Binding IsGammaSelected, Mode=TwoWay}"/>
 				<RadioButton Content="Neutronic" IsChecked="{Binding IsNeutronicSelected, Mode=TwoWay}"/>
 			</StackPanel>
 		
-			<StackPanel Grid.Row="2" HorizontalAlignment="Center">
+			<StackPanel Grid.Row="3" HorizontalAlignment="Center">
 				<Button Content="Открыть LAS File" Command="{Binding OpenLasFileCommand}"/>
 				<!--<Button Content="Показать графики" Command="{Binding OpenGraphWindowCommand}"/>-->
 				<!--<Button Content="Показать расчеты" Command="{Binding OpenResultTableWindowCommand}"/>-->

@@ -151,6 +151,9 @@ namespace LasAnalyzer.ViewModels
         public ReactiveCommand<PointerCommandArgs, Unit> PointerMoveCommand { get; }
         public ReactiveCommand<PointerCommandArgs, Unit> PointerUpCommand { get; }
 
+        public ReactiveCommand<Unit, Unit> ChangePointCommand { get; }
+        public ReactiveCommand<Unit, Unit> AcceptPointCommand { get; }
+
         public MainWindowViewModel()
         {
             _lasFileReader = new LasFileReader();
@@ -169,6 +172,9 @@ namespace LasAnalyzer.ViewModels
             PointerDownCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerDown);
             PointerMoveCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerMove);
             PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
+
+            ChangePointCommand = ReactiveCommand.Create(ChangePoint);
+            AcceptPointCommand = ReactiveCommand.Create(AcceptPoint);
 
             InvisibleX = new[] { new Axis { IsVisible = true } };
             YAxis = new[] 
@@ -200,6 +206,9 @@ namespace LasAnalyzer.ViewModels
             IsHeatingSelected = true;
             IsCoolingSelected = true;
             IsGammaSelected = true;
+
+            MaxValue = 0;
+            MinValue = 0;
         }
         private Axis[] invisibleX;
         private Axis[] invisibleY;
@@ -228,19 +237,53 @@ namespace LasAnalyzer.ViewModels
             set => this.RaiseAndSetIfChanged(ref scrollableAxes, value);
         }
 
+        private double _maxValue;
+        public double MaxValue
+        {
+            get => _maxValue;
+            set => this.RaiseAndSetIfChanged(ref _maxValue, value);
+        }
+
+        private double _minValue;
+        public double MinValue
+        {
+            get => _minValue;
+            set => this.RaiseAndSetIfChanged(ref _minValue, value);
+        }
+
+        private void ChangePoint()
+        {
+            isEnablePointMarking = true;
+        }
+
+        private void AcceptPoint()
+        {
+            isEnablePointMarking = false;
+        }
+
+        private bool isEnablePointMarking = false;
+
         private bool isDragging = false;
         private LvcPointD lastPointerPosition;
 
         private void PointerDown(PointerCommandArgs args)
         {
-            isDragging = true;
-            var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
-            lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
-            var thumb = Thumbs[0];
+            if (isEnablePointMarking)
+            {
+                var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
+                var lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
+            }
+            else
+            {
+                isDragging = true;
+                var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
+                lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
+                var thumb = Thumbs[0];
 
-            // update the scroll bar thumb when the user is dragging the chart
-            thumb.Xi = lastPointerPosition.X;
-            thumb.Xj = lastPointerPosition.X;
+                // update the scroll bar thumb when the user is dragging the chart
+                thumb.Xi = lastPointerPosition.X;
+                thumb.Xj = lastPointerPosition.X;
+            }
         }
 
         private void PointerMove(PointerCommandArgs args)
@@ -248,7 +291,7 @@ namespace LasAnalyzer.ViewModels
             if (!isDragging) return;
 
             var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
-            var lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
+            lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
 
             var thumb = Thumbs[0];
 
@@ -268,7 +311,7 @@ namespace LasAnalyzer.ViewModels
 
         private void ReceiveGraphData(GraphData graphData)
         {
-            LasDataForGamma = graphData; ///
+            LasDataForGamma = graphData; /// for graph window
         }
         
         private void CreateAndSaveReport()
@@ -308,8 +351,8 @@ namespace LasAnalyzer.ViewModels
                 LasDataForGamma = lasData.Item1;
                 LasDataForNeutronic = lasData.Item2;
 
-                SeriesDataForGamma = new SeriesData(lasData.Item1);
-                SeriesDataForNeutronic = new SeriesData(lasData.Item2);
+                SeriesDataForGamma = new SeriesData(lasData.Item1, WindowSize);
+                SeriesDataForNeutronic = new SeriesData(lasData.Item2, WindowSize);
 
                 YAxis = new[]
                 {

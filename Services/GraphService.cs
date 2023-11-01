@@ -1,57 +1,30 @@
-﻿using OxyPlot.Series;
-using OxyPlot;
+﻿using LasAnalyzer.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xceed.Document.NET;
-using Xceed.Words.NET;
 
 namespace LasAnalyzer.Services
 {
     public class GraphService
     {
-        public PlotModel OxyPlotModel { get; private set; }
-        public List<Chart> XceedCharts { get; private set; }
+        // при инициализации будут создаваться 4 объекта Graph которые и будут представлять графики
+        // в это классе будет определятья точка когда начинается охлаждение
+        // продумать момент когда только нагрев или только охлад
+        
+        Graph NearProbe { get; set; }
+        Graph FarProbe { get; set; }
+        Graph FarToNearProbeRatio { get; set; }
+        Graph Temperature { get; set; }
 
-        public GraphService()
+        public GraphService(GraphData graphData, (string, string) titles, int windowSize)
         {
-            // Инициализация OxyPlot модели и данных
-            OxyPlotModel = new PlotModel();
-            var series = new LineSeries();
-            // Заполните series данными для графика
-            OxyPlotModel.Series.Add(series);
-
-            // Инициализация коллекции для Xceed графиков
-            XceedCharts = new List<Chart>();
+            NearProbe = new Graph(graphData.NearProbe, titles.Item1, windowSize);
+            FarProbe = new Graph(graphData.NearProbe, titles.Item2, windowSize);
+            FarToNearProbeRatio = new Graph(graphData.NearProbe, $"{titles.Item2}/{titles.Item1}", windowSize);
+            Temperature = new Graph(graphData.NearProbe, "TEMPER", windowSize);
         }
 
-        public void GenerateOxyPlot()
-        {
-            // Генерация графика OxyPlot
-            // Заполнение OxyPlot данными и настройка внешнего вида
-        }
-
-        public void GenerateXceedCharts()
-        {
-            // Генерация графиков для Xceed.Words.NET
-            //foreach (var data in XceedChartData)
-            //{
-            //    var chart = new Chart();
-            //    // Заполнение chart данными и настройка внешнего вида
-            //    XceedCharts.Add(chart);
-            //}
-        }
-
-        public void InsertChartsInDocument(DocX document)
-        {
-            // Вставка графиков в документ с использованием Xceed.Words.NET
-            foreach (var chart in XceedCharts)
-            {
-                // Вставка chart в документ
-                document.InsertChart(chart);
-            }
-        }
     }
 }
