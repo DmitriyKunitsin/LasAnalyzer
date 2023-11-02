@@ -1,4 +1,5 @@
 ﻿using LasAnalyzer.Models;
+using LasAnalyzer.Services.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,17 +10,31 @@ namespace LasAnalyzer.Services
 {
     public class Calculator
     {
-        public ResultTable CalculateMetrics(GraphData graphData, TempType tempType, int windowSize)
+        public ResultTable CalculateMetrics(GraphService graphService, TempType tempType)
         {
-            var baseIndex = Utils.FindIndexForBaseValue(graphData.Temperature, tempType, windowSize);
+            if (graphService is null) return null;
 
-            if (baseIndex is null)
-                return null;
+            ExtremumPoints nearProbeExtrema = new ExtremumPoints();
+            ExtremumPoints farProbeExtrema = new ExtremumPoints();
+            ExtremumPoints farToNearProbeExtrema = new ExtremumPoints();
 
-            var baseValues = InitializeBaseValues(graphData, tempType, baseIndex.Value);
+            if (tempType == TempType.Heating)
+            {
+                nearProbeExtrema = graphService.GraphNearProbe.HeatingExtremumPoints;
+                farProbeExtrema = graphService.GraphFarProbe.HeatingExtremumPoints;
+                farToNearProbeExtrema = graphService.GraphFarToNearProbeRatio.HeatingExtremumPoints;
+            }
+            else if (tempType == TempType.Cooling)
+            {
+                nearProbeExtrema = graphService.GraphNearProbe.CoolingExtremumPoints;
+                farProbeExtrema = graphService.GraphFarProbe.CoolingExtremumPoints;
+                farToNearProbeExtrema = graphService.GraphFarToNearProbeRatio.CoolingExtremumPoints;
+            }
 
-            var maxExtrema = GetExtremums(graphData, baseValues, baseIndex.Value);
-            var minExtrema = GetExtremums(graphData, baseValues, baseIndex.Value, isMax: false);
+            var baseValues = GetBaseValues(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema);
+
+            var maxExtrema = GetMaximums(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema);
+            var minExtrema = GetMinimums(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema);
 
             var maxDif = GetDifferences(baseValues, maxExtrema);
             var minDif = GetDifferences(baseValues, minExtrema);
@@ -38,83 +53,59 @@ namespace LasAnalyzer.Services
                 minPercent
             };
 
+            var baseIndex = 0;
+
+            if (tempType == TempType.Heating)
+            {
+                baseIndex = graphService.GraphTemperature.BaseHeatIndex;
+            }
+            else if (tempType == TempType.Cooling)
+            {
+                baseIndex = graphService.GraphTemperature.BaseCoolIndex;
+            }
+
             var resultTable = new ResultTable()
             {
                 Results = results,
                 TempType = tempType,
-                TemperBase = graphData.Temperature[baseIndex.Value]
+                TemperBase = graphService.GraphTemperature.Data[baseIndex]
             };
 
             return resultTable;
         }
 
-        public Result InitializeBaseValues(GraphData graphData, TempType tempType, int indexForBaseValue)
+        private Result GetBaseValues(ExtremumPoints nearProbeExtrema, ExtremumPoints farProbeExtrema, ExtremumPoints farToNearProbeExtrema)
         {
             var result = new Result();
 
-            result.Num = 1;
-            result.Formula = $"N(T={graphData.Temperature[indexForBaseValue]})";
-
-            if (tempType == TempType.Heating)
-            {
-                result.NearProbe = graphData.NearProbe.Take(indexForBaseValue).Average();
-                result.FarProbe = graphData.FarProbe.Take(indexForBaseValue).Average();
-                result.FarToNearProbeRatio = graphData.FarToNearProbeRatio.Take(indexForBaseValue).Average();
-            }
-            else if (tempType == TempType.Cooling)
-            {
-                result.NearProbe = graphData.NearProbe.Skip(indexForBaseValue).Average();
-                result.FarProbe = graphData.FarProbe.Skip(indexForBaseValue).Average();
-                result.FarToNearProbeRatio = graphData.FarToNearProbeRatio.Skip(indexForBaseValue).Average();
-            }
+            result.NearProbe = nearProbeExtrema.BasePoint.Y.Value;
+            result.FarProbe = farProbeExtrema.BasePoint.Y.Value;
+            result.FarToNearProbeRatio = farToNearProbeExtrema.BasePoint.Y.Value;
 
             return result;
         }
 
-        private Result GetExtremums(GraphData graphData, Result baseValues, int baseIndex, bool isMax = true)
+        private Result GetMaximums(ExtremumPoints nearProbeExtrema, ExtremumPoints farProbeExtrema, ExtremumPoints farToNearProbeExtrema)
         {
             var result = new Result();
 
-            var temperatures = new Temperatures();
+            result.NearProbe = nearProbeExtrema.MaxPoint.Y.Value;
+            result.FarProbe = farProbeExtrema.MaxPoint.Y.Value;
+            result.FarToNearProbeRatio = farToNearProbeExtrema.MaxPoint.Y.Value;
 
-            result.Num = isMax ? 2 : 3;
-            result.Formula = isMax ? "MAX/T" : "MIN/T";
+            return result;
+        }
+        private Result GetMinimums(ExtremumPoints nearProbeExtrema, ExtremumPoints farProbeExtrema, ExtremumPoints farToNearProbeExtrema)
+        {
+            var result = new Result();
 
-            var extremPoint = FindExtremum(graphData.NearProbe, baseIndex, baseValues.NearProbe, isMax);
-            result.NearProbe = extremPoint.Item2;
-            temperatures.NearProbe = graphData.Temperature[extremPoint.Item1];
-
-            extremPoint = FindExtremum(graphData.FarProbe, baseIndex, baseValues.FarProbe, isMax);
-            result.FarProbe = extremPoint.Item2;
-            temperatures.FarProbe = graphData.Temperature[extremPoint.Item1];
-
-            extremPoint = FindExtremum(graphData.FarToNearProbeRatio, baseIndex, baseValues.FarToNearProbeRatio, isMax);
-            result.FarToNearProbeRatio = extremPoint.Item2;
-            temperatures.FarToNearProbeRatio = graphData.Temperature[extremPoint.Item1];
-
-            result.Temperatures = temperatures;
+            result.NearProbe = nearProbeExtrema.MinPoint.Y.Value;
+            result.FarProbe = farProbeExtrema.MinPoint.Y.Value;
+            result.FarToNearProbeRatio = farToNearProbeExtrema.MinPoint.Y.Value;
 
             return result;
         }
 
-        public (int, double) FindExtremum(List<double> probePoints, int baseIndex, double baseValue, bool isMax = true)
-        {
-            var extremumIndex = isMax ? probePoints.IndexOf(probePoints.Max()) : probePoints.IndexOf(probePoints.Min());
-            var extremum = probePoints[extremumIndex];
-
-            if (CalculateDeviation(extremum, baseValue))
-            {
-                extremumIndex = baseIndex;
-                extremum = baseValue;
-            }
-
-            return (extremumIndex, extremum);
-        }
-
-        private bool CalculateDeviation(double value, double baseValue, double threshold = 0.005)
-        {
-            return (value - baseValue) / baseValue < threshold;
-        }
 
         private Result GetDifferences(Result baseValues, Result Extrema)
         {

@@ -27,7 +27,19 @@ namespace LasAnalyzer.Services.Graphics
         public ExtremumPoints HeatingExtremumPoints { get; set; }
         public ExtremumPoints CoolingExtremumPoints { get; set; }
 
-        public ProbeGraph(List<double> data, string title, int? baseHeatIndex, int? baseCoolIndex)
+        public ProbeGraph(string title)
+        {
+            Title = title;
+
+            LineSeries = new LineSeries<double>();
+
+            ProbeSeries = new ISeries[]
+            {
+                LineSeries,
+            };
+        }
+
+        public ProbeGraph(List<double> data, string title, int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
         {
             Data = data;
             Title = title;
@@ -47,11 +59,14 @@ namespace LasAnalyzer.Services.Graphics
                 ZIndex = 1,
             };
 
-            HeatingExtremumPoints = FindExtremum(TempType.Heating);
-            CoolingExtremumPoints = FindExtremum(TempType.Cooling);
 
-            if (baseHeatIndex is not null)
+            if (baseHeatIndex != -1)
             {
+                HeatingExtremumPoints = FindExtremum(
+                    data.Take(coolingStartIndex).ToList(),
+                    TempType.Heating,
+                    baseHeatIndex
+                );
                 HeatScatterSeries = new ScatterSeries<ObservablePoint>
                 {
                     Values = new ObservableCollection<ObservablePoint>
@@ -69,8 +84,13 @@ namespace LasAnalyzer.Services.Graphics
                 };
             }
 
-            if (baseCoolIndex is not null)
+            if (baseCoolIndex != -1)
             {
+                CoolingExtremumPoints = FindExtremum(
+                    data.Skip(coolingStartIndex).ToList(),
+                    TempType.Cooling,
+                    baseCoolIndex
+                );
                 CoolScatterSeries = new ScatterSeries<ObservablePoint>
                 {
                     Values = new ObservableCollection<ObservablePoint>
@@ -91,79 +111,82 @@ namespace LasAnalyzer.Services.Graphics
             ProbeSeries = new ISeries[]
             {
                 LineSeries,
-                HeatScatterSeries,
-                CoolScatterSeries,
+                HeatScatterSeries ?? new ScatterSeries<ObservablePoint>(),
+                CoolScatterSeries ?? new ScatterSeries<ObservablePoint>(),
             };
         }
 
-        private ExtremumPoints FindExtremum(TempType tempType)
+        private ExtremumPoints FindExtremum(List<double> data, TempType tempType, int baseIndex)
         {
-            Calculator calculator = new Calculator();
-            var baseHeatIndex = Utils.FindIndexForBaseValue(data, TempType.Heating, windowSize);
-            //var baseCoolIndex = Utils.FindIndexForBaseValue(graphData.Temperature, TempType.Cooling, windowSize);
-            var baseHeatValues = calculator.InitializeBaseValues(graphData, TempType.Heating, baseHeatIndex.Value);
-            var baseCoolValues = calculator.InitializeBaseValues(graphData, TempType.Cooling, baseHeatIndex.Value);
-            var maxHeatPoint = calculator.FindExtremum(graphData.NearProbe, baseHeatIndex.Value, baseHeatValues.NearProbe, isMax: true);
-            var minHeatPoint = calculator.FindExtremum(graphData.NearProbe, baseHeatIndex.Value, baseHeatValues.NearProbe, isMax: false);
+            ExtremumPoints ExtremumPoints = new ExtremumPoints();
 
-            FindBaseValues();
-            return new ExtremumPoints();
+            ExtremumPoints.BasePoint = FindBaseValues(data, tempType, baseIndex);
+            ExtremumPoints.MaxPoint = FindMaxExtremum(data, ExtremumPoints.BasePoint);
+            ExtremumPoints.MinPoint = FindMinExtremum(data, ExtremumPoints.BasePoint);
+
+            return ExtremumPoints;
         }
 
-        public Result FindBaseValues(GraphData graphData, TempType tempType, int indexForBaseValue)
+        public ObservablePoint FindBaseValues(List<double> data, TempType tempType, int baseIndex)
         {
-            var result = new Result();
-
-            result.Num = 1;
-            result.Formula = $"N(T={graphData.Temperature[indexForBaseValue]})";
+            var basePoint = new ObservablePoint();
+            basePoint.X = baseIndex;
 
             if (tempType == TempType.Heating)
             {
-                result.NearProbe = graphData.NearProbe.Take(indexForBaseValue).Average();
-                result.FarProbe = graphData.FarProbe.Take(indexForBaseValue).Average();
-                result.FarToNearProbeRatio = graphData.FarToNearProbeRatio.Take(indexForBaseValue).Average();
+                basePoint.Y = data.Take(baseIndex).Average();
             }
             else if (tempType == TempType.Cooling)
             {
-                result.NearProbe = graphData.NearProbe.Skip(indexForBaseValue).Average();
-                result.FarProbe = graphData.FarProbe.Skip(indexForBaseValue).Average();
-                result.FarToNearProbeRatio = graphData.FarToNearProbeRatio.Skip(indexForBaseValue).Average();
+                basePoint.Y = data.Skip(baseIndex).Average();
             }
 
-            return result;
+            return basePoint;
         }
 
-        private (int, double) FindMaxExtremum()
+        private ObservablePoint FindMaxExtremum(List<double> data, ObservablePoint basePoint)
         {
-            var extremumIndex = isMax ? probePoints.IndexOf(probePoints.Max()) : probePoints.IndexOf(probePoints.Min());
-            var extremum = probePoints[extremumIndex];
+            var maxPoint = new ObservablePoint();
+            var maxIdx = data.IndexOf(data.Max());
+            var max = data[maxIdx];
 
-            if (CalculateDeviation(extremum, baseValue))
+            if (IsExceedThreshold(max, basePoint.Y.Value))
             {
-                extremumIndex = baseIndex;
-                extremum = baseValue;
+                maxPoint.X = maxIdx;
+                maxPoint.Y = max;
             }
-
-            return (extremumIndex, extremum);
-        }
-
-        private (int, double) FindMinExtremum()
-        {
-            var extremumIndex = isMax ? probePoints.IndexOf(probePoints.Max()) : probePoints.IndexOf(probePoints.Min());
-            var extremum = probePoints[extremumIndex];
-
-            if (CalculateDeviation(extremum, baseValue))
+            else
             {
-                extremumIndex = baseIndex;
-                extremum = baseValue;
+                maxPoint.X = basePoint.X.Value;
+                maxPoint.Y = basePoint.Y.Value;
             }
 
-            return (extremumIndex, extremum);
+            return maxPoint;
         }
 
-        private bool CalculateDeviation(double value, double baseValue, double threshold = 0.005)
+        private ObservablePoint FindMinExtremum(List<double> data, ObservablePoint basePoint)
         {
-            return (value - baseValue) / baseValue < threshold;
+            var minPoint = new ObservablePoint();
+            var minIdx = data.IndexOf(data.Min());
+            var min = data[minIdx];
+
+            if (IsExceedThreshold(min, basePoint.Y.Value))
+            {
+                minPoint.X = minIdx;
+                minPoint.Y = min;
+            }
+            else
+            {
+                minPoint.X = basePoint.X.Value;
+                minPoint.Y = basePoint.Y.Value;
+            }
+
+            return minPoint;
+        }
+
+        private bool IsExceedThreshold(double value, double baseValue, double threshold = 0.005)
+        {
+            return Math.Abs((value - baseValue) / baseValue) > threshold;
         }
     }
 }

@@ -16,6 +16,7 @@ using LiveChartsCore.SkiaSharpView.SKCharts;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView.VisualElements;
+using LasAnalyzer.Services.Graphics;
 
 namespace LasAnalyzer.Services
 {
@@ -65,9 +66,9 @@ namespace LasAnalyzer.Services
             document.InsertParagraph().AppendPicture(picture);
         }
 
-        private void InsertResultTables(DocX document, List<ResultTable> Results)
+        private void InsertResultTables(DocX document, List<ResultTable> tables)
         {
-            foreach (var resultTable in Results)
+            foreach (var resultTable in tables)
             {
                 document.InsertParagraph("9. Результаты");
                 var table = document.AddTable(resultTable.Results.Count, 5);
@@ -108,18 +109,18 @@ namespace LasAnalyzer.Services
         }
 
         public void CreateAndSaveReport(
-            GraphData LasDataForGamma,
-            GraphData LasDataForNeutronic,
+            GraphService graphServiceGamma,
+            GraphService graphServiceNeutronic,
             bool isHeatingSelected,
             bool isCoolingSelected,
             int windowSize
         )
         {
-            if (LasDataForGamma is not null)
+            if (graphServiceGamma is not null)
             {
                 // todo: create and fill reportModel in MainWindowViewModel
                 SaveReport(
-                    LasDataForGamma,
+                    graphServiceGamma,
                     "RSD",
                     "RLD",
                     isHeatingSelected,
@@ -127,10 +128,10 @@ namespace LasAnalyzer.Services
                     windowSize
                 );
             }
-            if (LasDataForNeutronic is not null)
+            if (graphServiceNeutronic is not null)
             {
                 SaveReport(
-                    LasDataForNeutronic,
+                    graphServiceNeutronic,
                     "NTNC",
                     "FTNC",
                     isHeatingSelected,
@@ -141,7 +142,7 @@ namespace LasAnalyzer.Services
         }
 
         private void SaveReport(
-            GraphData lasData,
+            GraphService graphService,
             string nearProbeTitle,
             string farProbeTitle,
             bool isHeatingSelected,
@@ -151,10 +152,10 @@ namespace LasAnalyzer.Services
         {
             List<byte[]> chartImageDatas = new List<byte[]>()
                 {
-                    createChartImage(lasData.NearProbe, nearProbeTitle),
-                    createChartImage(lasData.FarProbe, farProbeTitle),
-                    createChartImage(lasData.FarToNearProbeRatio, $"{nearProbeTitle}/{farProbeTitle}"),
-                    createChartImage(lasData.Temperature, "TEMPER")
+                    createChartImage(graphService.GraphNearProbe.Data, nearProbeTitle),
+                    createChartImage(graphService.GraphFarProbe.Data, farProbeTitle),
+                    createChartImage(graphService.GraphFarToNearProbeRatio.Data, $"{nearProbeTitle}/{farProbeTitle}"),
+                    createChartImage(graphService.GraphTemperature.Data, "TEMPER")
                 };
 
             ReportModel ReportModel = new ReportModel()
@@ -166,7 +167,7 @@ namespace LasAnalyzer.Services
                 FarProbeThreshold = 0,
                 Graphs = chartImageDatas,
                 Results = CalculatorWrapper(
-                    lasData,
+                    graphService,
                     isHeatingSelected,
                     isCoolingSelected,
                     windowSize
@@ -177,7 +178,7 @@ namespace LasAnalyzer.Services
         }
 
         private List<ResultTable> CalculatorWrapper(
-            GraphData lasData,
+            GraphService graphService,
             bool isHeatingSelected,
             bool isCoolingSelected,
             int windowSize
@@ -187,10 +188,10 @@ namespace LasAnalyzer.Services
             var tableList = new List<ResultTable>();
 
             if (isHeatingSelected)
-                tableList.Add(calculator.CalculateMetrics(lasData, TempType.Heating, windowSize));
+                tableList.Add(calculator.CalculateMetrics(graphService, TempType.Heating));
 
             if (isCoolingSelected)
-                tableList.Add(calculator.CalculateMetrics(lasData, TempType.Cooling, windowSize));
+                tableList.Add(calculator.CalculateMetrics(graphService, TempType.Cooling));
 
             return tableList;
         }

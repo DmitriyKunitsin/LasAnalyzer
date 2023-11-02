@@ -41,8 +41,8 @@ namespace LasAnalyzer.ViewModels
         private LasFileReader _lasFileReader;
         private DocxWriter _docxWriter;
 
-        private SeriesData _seriesDataForGamma;
-        private SeriesData _seriesDataForNeutronic;
+        private GraphService _graphServiceGamma;
+        private GraphService _graphServiceNeutronic;
 
         private int windowSize;
         private int smoothingIterations;
@@ -54,29 +54,17 @@ namespace LasAnalyzer.ViewModels
         public GraphData LasDataForGamma { get; set; }
         public GraphData LasDataForNeutronic { get; set; }
 
-        public SeriesData SeriesDataForGamma
+        public GraphService GraphServiceGamma
         {
-            get => _seriesDataForGamma;
-            set => this.RaiseAndSetIfChanged(ref _seriesDataForGamma, value);
+            get => _graphServiceGamma;
+            set => this.RaiseAndSetIfChanged(ref _graphServiceGamma, value);
         }
 
-        public SeriesData SeriesDataForNeutronic
+        public GraphService GraphServiceNeutronic
         {
-            get => _seriesDataForNeutronic;
-            set => this.RaiseAndSetIfChanged(ref _seriesDataForNeutronic, value);
+            get => _graphServiceNeutronic;
+            set => this.RaiseAndSetIfChanged(ref _graphServiceNeutronic, value);
         }
-
-        //public Axis[] XAxes { get; set; } =
-        //{
-        //    new Axis
-        //    {
-        //        CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
-        //        CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
-        //        CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
-        //        //Labeler = value => value.ToString("N2"),
-        //        CrosshairSnapEnabled = true
-        //    }
-        //};
 
         public int WindowSize
         {
@@ -130,20 +118,6 @@ namespace LasAnalyzer.ViewModels
             set => this.RaiseAndSetIfChanged(ref line, value);
         }
 
-        private double _xSection;
-        private double _ySection;
-        public double XSection
-        {
-            get => _xSection;
-            set => this.RaiseAndSetIfChanged(ref _xSection, value);
-        }
-
-        public double YSection
-        {
-            get => _ySection;
-            set => this.RaiseAndSetIfChanged(ref _ySection, value);
-        }
-
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGraphWindowCommand { get; }
         public ReactiveCommand<Unit, Unit> CreateAndSaveReportCommand { get; }
@@ -167,8 +141,8 @@ namespace LasAnalyzer.ViewModels
             MessageBus.Current.Listen<GraphData>("GraphDataMessage")
             .Subscribe(graphData => ReceiveGraphData(graphData)); ///
 
-            SeriesDataForGamma = new SeriesData();
-            SeriesDataForNeutronic = new SeriesData();
+            GraphServiceGamma = new GraphService(("RSD", "RLD"));
+            GraphServiceNeutronic = new GraphService(("NTNC", "FTNC"));
 
             PointerDownCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerDown);
             PointerMoveCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerMove);
@@ -177,13 +151,9 @@ namespace LasAnalyzer.ViewModels
             ChangePointCommand = ReactiveCommand.Create(ChangePoint);
             AcceptPointCommand = ReactiveCommand.Create(AcceptPoint);
 
-            InvisibleX = new[] { new Axis { IsVisible = true } };
             YAxis = new[] 
-            { new Axis
-                {
-                }
+            { new Axis()
             };
-            ScrollableAxes = new[] { new Axis() };
 
             Thumbs = new[]
             {
@@ -211,16 +181,9 @@ namespace LasAnalyzer.ViewModels
             MaxValue = 0;
             MinValue = 0;
         }
-        private Axis[] invisibleX;
         private Axis[] invisibleY;
-        private Axis[] scrollableAxes;
         private RectangularSection[] thumbs;
 
-        public Axis[] InvisibleX
-        {
-            get => invisibleX;
-            set => this.RaiseAndSetIfChanged(ref invisibleX, value);
-        }
         public Axis[] YAxis
         {
             get => invisibleY;
@@ -232,11 +195,6 @@ namespace LasAnalyzer.ViewModels
             set => this.RaiseAndSetIfChanged(ref thumbs, value);
         }
 
-        public Axis[] ScrollableAxes
-        {
-            get => scrollableAxes;
-            set => this.RaiseAndSetIfChanged(ref scrollableAxes, value);
-        }
 
         private double _maxValue;
         public double MaxValue
@@ -318,8 +276,8 @@ namespace LasAnalyzer.ViewModels
         private void CreateAndSaveReport()
         {
             _docxWriter.CreateAndSaveReport(
-                LasDataForGamma,
-                LasDataForNeutronic,
+                GraphServiceGamma,
+                GraphServiceNeutronic,
                 IsHeatingSelected,
                 IsCoolingSelected,
                 WindowSize);
@@ -352,8 +310,8 @@ namespace LasAnalyzer.ViewModels
                 LasDataForGamma = lasData.Item1;
                 LasDataForNeutronic = lasData.Item2;
 
-                SeriesDataForGamma = new SeriesData(lasData.Item1, WindowSize);
-                SeriesDataForNeutronic = new SeriesData(lasData.Item2, WindowSize);
+                GraphServiceGamma = new GraphService(lasData.Item1, ("RSD", "RLD"), WindowSize);
+                GraphServiceNeutronic = new GraphService(lasData.Item2, ("NTNC", "FTNC"), WindowSize);
 
                 YAxis = new[]
                 {

@@ -73,10 +73,9 @@
 			
 			<Border Grid.Row="0" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesDataForGamma.NearProbeSeries}"
+					Series="{Binding GraphServiceGamma.GraphNearProbe.ProbeSeries}"
 					x:Name="{Binding Title}"
 					Title="{Binding Title}"
-					XAxes="{Binding ScrollableAxes}"
 					YAxes="{Binding YAxis}"
 					Sections="{Binding Thumbs}"
 					PointerMoveCommand="{Binding PointerMoveCommand}"
@@ -88,21 +87,21 @@
 
 			<Border Grid.Row="1" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesDataForGamma.FarProbeSeries}"
+					Series="{Binding GraphServiceGamma.GraphFarProbe.ProbeSeries}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="2" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesDataForGamma.FarToNearProbeRatioSeries}"
+					Series="{Binding GraphServiceGamma.GraphFarToNearProbeRatio.ProbeSeries}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="3" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesDataForGamma.TemperatureSeries}"
+					Series="{Binding GraphServiceGamma.GraphTemperature.ProbeSeries}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
@@ -121,7 +120,7 @@
 			
 			<Border Grid.Row="0" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesDataForNeutronic.NearProbeSeries}"
+					Series="{Binding GraphServiceNeutronic.GraphNearProbe.ProbeSeries}"
 					Title="{Binding Title}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
@@ -129,21 +128,21 @@
 
 			<Border Grid.Row="1" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesDataForNeutronic.FarProbeSeries}"
+					Series="{Binding GraphServiceNeutronic.GraphFarProbe.ProbeSeries}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="2" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesDataForNeutronic.FarToNearProbeRatioSeries}"
+					Series="{Binding GraphServiceNeutronic.GraphFarToNearProbeRatio.ProbeSeries}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="3" Grid.Column="1">
 				<lvc:CartesianChart
-					Series="{Binding SeriesDataForNeutronic.TemperatureSeries}"
+					Series="{Binding GraphServiceNeutronic.GraphTemperature.ProbeSeries}"
 					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>

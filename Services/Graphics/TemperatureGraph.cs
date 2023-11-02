@@ -2,6 +2,8 @@
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,8 +23,20 @@ namespace LasAnalyzer.Services.Graphics
         public TempType TemperatureType { get; set; }
 
         // базовые индексы нужны чтобы измерить базовые значения показаний зондов
-        public int? BaseHeatIndex { get; set; }
-        public int? BaseCoolIndex { get; set; }
+        public int BaseHeatIndex { get; set; }
+        public int BaseCoolIndex { get; set; }
+
+        public TemperatureGraph(string title)
+        {
+            Title = title;
+
+            LineSeries = new LineSeries<double>();
+
+            ProbeSeries = new ISeries[]
+            {
+                LineSeries,
+            };
+        }
 
         public TemperatureGraph(List<double> data, string title, int windowSize)
         {
@@ -30,16 +44,40 @@ namespace LasAnalyzer.Services.Graphics
             Title = title;
             WindowSize = windowSize;
 
+            BaseHeatIndex = -1;
+            BaseCoolIndex = -1;
+            CoolingStartIndex = -1;
+
             FindHeatingCoolingTransitionIndex();
 
             FindIndexForBaseValue();
+
+            LineSeries = new LineSeries<double>
+            {
+                Values = data,
+                GeometryStroke = null,
+                GeometryFill = null,
+                Fill = null,
+                Stroke = new SolidColorPaint
+                {
+                    Color = SKColors.BlueViolet,
+                    StrokeThickness = 3,
+                    ZIndex = 1
+                },
+                ZIndex = 1,
+            };
+
+            ProbeSeries = new ISeries[]
+            {
+                LineSeries,
+            };
         }
 
         private void FindHeatingCoolingTransitionIndex()
         {
             bool hasHeating = false;
             bool hasCooling = false;
-            CoolingStartIndex = -1;
+            int coolingStartIndex = -1;
 
             for (int i = 1; i < Data.Count; i++)
             {
@@ -50,28 +88,26 @@ namespace LasAnalyzer.Services.Graphics
                 else if (Data[i - 1] > Data[i])
                 {
                     hasCooling = true;
-                    CoolingStartIndex = i;
+                    coolingStartIndex = i;
                 }
             }
 
             if (hasHeating && hasCooling)
             {
+                CoolingStartIndex = coolingStartIndex;
                 TemperatureType = TempType.Both;
             }
             else if (hasHeating)
             {
-                CoolingStartIndex = -1;
                 TemperatureType = TempType.Heating;
             }
             else if (hasCooling)
             {
-                CoolingStartIndex = -1;
                 TemperatureType = TempType.Cooling;
             }
             else
             {
                 // если процесс нагрева или охлаждения не обнаружен
-                CoolingStartIndex = -1;
                 TemperatureType = TempType.Both;
             }
         }

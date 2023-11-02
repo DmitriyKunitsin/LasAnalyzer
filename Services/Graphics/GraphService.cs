@@ -11,7 +11,7 @@ namespace LasAnalyzer.Services.Graphics
     {
         // при инициализации будут создаваться 4 объекта Graph
         // которые и будут представлять графики
-        // в это классе будет определятья точка когда начинается охлаждение
+        // в этом классе будет определятья точка когда заканчивается нагрев и начинается охлаждение
 
         public ProbeGraph GraphNearProbe { get; set; }
         public ProbeGraph GraphFarProbe { get; set; }
@@ -19,6 +19,15 @@ namespace LasAnalyzer.Services.Graphics
         public TemperatureGraph GraphTemperature { get; set; }
         public TempType TemperatureType { get; set; }
         public int CoolingStartIndex { get; set; }
+
+        public GraphService((string, string) titles)
+        {
+            GraphTemperature = new TemperatureGraph("TEMPER");
+            GraphNearProbe = new ProbeGraph(titles.Item1);
+            GraphFarProbe = new ProbeGraph(titles.Item2);
+            GraphFarToNearProbeRatio = new ProbeGraph($"{titles.Item2}/{titles.Item1}");
+
+        }
 
         public GraphService(GraphData graphData, (string, string) titles, int windowSize)
         {
@@ -30,9 +39,9 @@ namespace LasAnalyzer.Services.Graphics
             var baseHeatIndex = GraphTemperature.BaseHeatIndex;
             var baseCoolIndex = GraphTemperature.BaseCoolIndex;
 
-            GraphNearProbe = new ProbeGraph(graphData.NearProbe, titles.Item1, baseHeatIndex, baseCoolIndex);
-            GraphFarProbe = new ProbeGraph(graphData.FarProbe, titles.Item2, baseHeatIndex, baseCoolIndex);
-            GraphFarToNearProbeRatio = new ProbeGraph(graphData.FarToNearProbeRatio, $"{titles.Item2}/{titles.Item1}", baseHeatIndex, baseCoolIndex);
+            GraphNearProbe = new ProbeGraph(graphData.NearProbe, titles.Item1, CoolingStartIndex, baseHeatIndex, baseCoolIndex);
+            GraphFarProbe = new ProbeGraph(graphData.FarProbe, titles.Item2, CoolingStartIndex, baseHeatIndex, baseCoolIndex);
+            GraphFarToNearProbeRatio = new ProbeGraph(graphData.FarToNearProbeRatio, $"{titles.Item2}/{titles.Item1}", CoolingStartIndex, baseHeatIndex, baseCoolIndex);
 
         }
     }
