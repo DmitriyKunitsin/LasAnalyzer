@@ -7,13 +7,14 @@ using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LasAnalyzer.Services
+namespace LasAnalyzer.Services.Graphics
 {
-    public class Graph
+    public class ProbeGraph : IGraph
     {
         public ISeries[] ProbeSeries { get; set; }
         public LineSeries<double> LineSeries { get; set; }
@@ -21,17 +22,15 @@ namespace LasAnalyzer.Services
         public ScatterSeries<ObservablePoint> CoolScatterSeries { get; set; }
         public List<double> Data { get; set; }
         public string Title { get; set; }
-        public int WindowSize { get; set; }
 
         // Points
         public ExtremumPoints HeatingExtremumPoints { get; set; }
         public ExtremumPoints CoolingExtremumPoints { get; set; }
 
-        public Graph(List<double> data, string title, int windowSize)
+        public ProbeGraph(List<double> data, string title, int? baseHeatIndex, int? baseCoolIndex)
         {
             Data = data;
             Title = title;
-            WindowSize = windowSize;
 
             LineSeries = new LineSeries<double>
             {
@@ -51,37 +50,43 @@ namespace LasAnalyzer.Services
             HeatingExtremumPoints = FindExtremum(TempType.Heating);
             CoolingExtremumPoints = FindExtremum(TempType.Cooling);
 
-            HeatScatterSeries = new ScatterSeries<ObservablePoint>
+            if (baseHeatIndex is not null)
             {
-                Values = new ObservableCollection<ObservablePoint>
-                    {
-                        HeatingExtremumPoints.BasePoint,
-                        HeatingExtremumPoints.MaxPoint,
-                        HeatingExtremumPoints.MinPoint,
-                    },
-                Stroke = new SolidColorPaint
+                HeatScatterSeries = new ScatterSeries<ObservablePoint>
                 {
-                    Color = SKColors.Red,
-                    StrokeThickness = 3,
-                    ZIndex = 1
-                },
-            };
+                    Values = new ObservableCollection<ObservablePoint>
+                        {
+                            HeatingExtremumPoints.BasePoint,
+                            HeatingExtremumPoints.MaxPoint,
+                            HeatingExtremumPoints.MinPoint,
+                        },
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.Red,
+                        StrokeThickness = 3,
+                        ZIndex = 1
+                    },
+                };
+            }
 
-            CoolScatterSeries = new ScatterSeries<ObservablePoint>
+            if (baseCoolIndex is not null)
             {
-                Values = new ObservableCollection<ObservablePoint>
-                    {
-                        CoolingExtremumPoints.BasePoint,
-                        CoolingExtremumPoints.MaxPoint,
-                        CoolingExtremumPoints.MinPoint,
-                    },
-                Stroke = new SolidColorPaint
+                CoolScatterSeries = new ScatterSeries<ObservablePoint>
                 {
-                    Color = SKColors.Blue,
-                    StrokeThickness = 3,
-                    ZIndex = 1
-                },
-            };
+                    Values = new ObservableCollection<ObservablePoint>
+                        {
+                            CoolingExtremumPoints.BasePoint,
+                            CoolingExtremumPoints.MaxPoint,
+                            CoolingExtremumPoints.MinPoint,
+                        },
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.Blue,
+                        StrokeThickness = 3,
+                        ZIndex = 1
+                    },
+                };
+            }
 
             ProbeSeries = new ISeries[]
             {

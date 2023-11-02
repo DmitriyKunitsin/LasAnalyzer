@@ -32,6 +32,7 @@ using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView.Drawing;
 using LiveChartsCore.SkiaSharpView.Painting.Effects;
 using LiveChartsCore.Measure;
+using LasAnalyzer.Services.Graphics;
 
 namespace LasAnalyzer.ViewModels
 {
