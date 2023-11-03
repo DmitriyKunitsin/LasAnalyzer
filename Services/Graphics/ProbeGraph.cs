@@ -1,14 +1,17 @@
 ﻿using LasAnalyzer.Models;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
+using LiveChartsCore.Kernel.Events;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
+using ReactiveUI;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,6 +30,8 @@ namespace LasAnalyzer.Services.Graphics
         public ExtremumPoints HeatingExtremumPoints { get; set; }
         public ExtremumPoints CoolingExtremumPoints { get; set; }
 
+        public RectangularSection[] Thumbs { get; set; }
+
         public ProbeGraph(string title)
         {
             Title = title;
@@ -37,12 +42,44 @@ namespace LasAnalyzer.Services.Graphics
             {
                 LineSeries,
             };
+
+            Thumbs = new[]
+            {
+                new RectangularSection
+                {
+                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
+                    Xi = 0,
+                    Xj = 0,
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.Red,
+                        StrokeThickness = 3,
+                        ZIndex = 2
+                    }
+                }
+            };
         }
 
         public ProbeGraph(List<double> data, string title, int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
         {
             Data = data;
             Title = title;
+
+            Thumbs = new[]
+            {
+                new RectangularSection
+                {
+                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
+                    Xi = 0,
+                    Xj = 0,
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.Red,
+                        StrokeThickness = 3,
+                        ZIndex = 2
+                    }
+                }
+            };
 
             LineSeries = new LineSeries<double>
             {
@@ -52,7 +89,7 @@ namespace LasAnalyzer.Services.Graphics
                 Fill = null,
                 Stroke = new SolidColorPaint
                 {
-                    Color = SKColors.BlueViolet,
+                    Color = SKColors.RoyalBlue,
                     StrokeThickness = 3,
                     ZIndex = 1
                 },
@@ -81,6 +118,7 @@ namespace LasAnalyzer.Services.Graphics
                         StrokeThickness = 3,
                         ZIndex = 1
                     },
+                    GeometrySize = 10
                 };
             }
 
@@ -105,6 +143,7 @@ namespace LasAnalyzer.Services.Graphics
                         StrokeThickness = 3,
                         ZIndex = 1
                     },
+                    GeometrySize = 10
                 };
             }
 
@@ -114,6 +153,31 @@ namespace LasAnalyzer.Services.Graphics
                 HeatScatterSeries ?? new ScatterSeries<ObservablePoint>(),
                 CoolScatterSeries ?? new ScatterSeries<ObservablePoint>(),
             };
+        }
+
+        public void PointerDown(PointerCommandArgs args)
+        {
+            // при наведении на точку она чуть увеличивается, за нее можно схватиться ЛКМ
+            // мб флаг определяющий что конкретная точка схвачена
+
+            //HeatingExtremumPoints;
+            //CoolingExtremumPoints;
+            //if (true)
+            //{
+
+            //}
+            throw new NotImplementedException();
+        }
+
+        public void PointerMove(PointerCommandArgs args)
+        {
+            // после прожатия ЛКМ точку можно перемещать
+            throw new NotImplementedException();
+        }
+
+        public void PointerUp(PointerCommandArgs args)
+        {
+            throw new NotImplementedException();
         }
 
         private ExtremumPoints FindExtremum(List<double> data, TempType tempType, int baseIndex)
@@ -134,10 +198,12 @@ namespace LasAnalyzer.Services.Graphics
 
             if (tempType == TempType.Heating)
             {
+                baseIndex = baseIndex == 0 ? 1 : baseIndex;
                 basePoint.Y = data.Take(baseIndex).Average();
             }
             else if (tempType == TempType.Cooling)
             {
+                baseIndex = baseIndex == data.Count - 1 ? data.Count - 2 : baseIndex;
                 basePoint.Y = data.Skip(baseIndex).Average();
             }
 

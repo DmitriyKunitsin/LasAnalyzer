@@ -1,12 +1,16 @@
-﻿using LasAnalyzer.Models;
+﻿using Avalonia.Controls.Primitives;
+using LasAnalyzer.Models;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
+using LiveChartsCore.Kernel.Events;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
+using ReactiveUI;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,6 +30,8 @@ namespace LasAnalyzer.Services.Graphics
         public int BaseHeatIndex { get; set; }
         public int BaseCoolIndex { get; set; }
 
+        public RectangularSection[] Thumbs { get; set; }
+
         public TemperatureGraph(string title)
         {
             Title = title;
@@ -35,6 +41,22 @@ namespace LasAnalyzer.Services.Graphics
             ProbeSeries = new ISeries[]
             {
                 LineSeries,
+            };
+
+            Thumbs = new[]
+            {
+                new RectangularSection
+                {
+                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
+                    Xi = 0,
+                    Xj = 0,
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.Red,
+                        StrokeThickness = 3,
+                        ZIndex = 2
+                    }
+                }
             };
         }
 
@@ -52,6 +74,22 @@ namespace LasAnalyzer.Services.Graphics
 
             FindIndexForBaseValue();
 
+            Thumbs = new[]
+            {
+                new RectangularSection
+                {
+                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
+                    Xi = 0,
+                    Xj = 0,
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.Red,
+                        StrokeThickness = 3,
+                        ZIndex = 2
+                    }
+                }
+            };
+
             LineSeries = new LineSeries<double>
             {
                 Values = data,
@@ -60,7 +98,7 @@ namespace LasAnalyzer.Services.Graphics
                 Fill = null,
                 Stroke = new SolidColorPaint
                 {
-                    Color = SKColors.BlueViolet,
+                    Color = SKColors.RoyalBlue,
                     StrokeThickness = 3,
                     ZIndex = 1
                 },
@@ -71,6 +109,21 @@ namespace LasAnalyzer.Services.Graphics
             {
                 LineSeries,
             };
+        }
+
+        public void PointerDown(PointerCommandArgs args)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void PointerMove(PointerCommandArgs args)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void PointerUp(PointerCommandArgs args)
+        {
+            throw new NotImplementedException();
         }
 
         private void FindHeatingCoolingTransitionIndex()

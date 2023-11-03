@@ -40,10 +40,11 @@
 				<StackPanel>
 					<TextBlock Text="Макс: " VerticalAlignment="Center"/>
 					<TextBox Text="{Binding MaxValue}" Width="40"/>
+					<Button Content="Изменить максимум" Command="{Binding ChangeMaxPointCommand}"/>
 					<TextBlock Text="Мин: " VerticalAlignment="Center"/>
 					<TextBox Text="{Binding MinValue}" Width="40"/>
-					<Button Content="Изменить" Command="{Binding ChangePointCommand}" Width="80"/>
-					<Button Content="Принять" Command="{Binding AcceptPointCommand}" Width="80"/>
+					<Button Content="Изменить" Command="{Binding ChangeMinPointCommand}"/>
+					<Button Content="Принять" Command="{Binding AcceptPointCommand}"/>
 				</StackPanel>
 				<CheckBox Content="Охлаждение" IsChecked="{Binding IsCoolingSelected, Mode=TwoWay}"/>
 			</StackPanel>
@@ -77,10 +78,10 @@
 					x:Name="{Binding Title}"
 					Title="{Binding Title}"
 					YAxes="{Binding YAxis}"
-					Sections="{Binding Thumbs}"
-					PointerMoveCommand="{Binding PointerMoveCommand}"
-					PointerPressedCommand="{Binding PointerDownCommand}"
-					PointerReleasedCommand="{Binding PointerUpCommand}"
+					Sections="{Binding GraphServiceGamma.GraphNearProbe.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
 					ZoomMode="X">
 				</lvc:CartesianChart>
 			</Border>
@@ -88,21 +89,33 @@
 			<Border Grid.Row="1" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding GraphServiceGamma.GraphFarProbe.ProbeSeries}"
-					ZoomMode="Both">
+					Sections="{Binding GraphServiceGamma.GraphFarProbe.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
+					ZoomMode="X">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="2" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding GraphServiceGamma.GraphFarToNearProbeRatio.ProbeSeries}"
-					ZoomMode="Both">
+					Sections="{Binding GraphServiceGamma.GraphFarToNearProbeRatio.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
+					ZoomMode="X">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="3" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding GraphServiceGamma.GraphTemperature.ProbeSeries}"
-					ZoomMode="Both">
+					Sections="{Binding GraphServiceGamma.GraphTemperature.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
+					ZoomMode="X">
 				</lvc:CartesianChart>
 			</Border>
 		</Grid>
@@ -122,28 +135,44 @@
 				<lvc:CartesianChart
 					Series="{Binding GraphServiceNeutronic.GraphNearProbe.ProbeSeries}"
 					Title="{Binding Title}"
-					ZoomMode="Both">
+					Sections="{Binding GraphServiceNeutronic.GraphNearProbe.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceNeutronic.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceNeutronic.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceNeutronic.PointerUpCommand}"
+					ZoomMode="X">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="1" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding GraphServiceNeutronic.GraphFarProbe.ProbeSeries}"
-					ZoomMode="Both">
+					Sections="{Binding GraphServiceNeutronic.GraphFarProbe.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceNeutronic.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceNeutronic.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceNeutronic.PointerUpCommand}"
+					ZoomMode="X">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="2" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding GraphServiceNeutronic.GraphFarToNearProbeRatio.ProbeSeries}"
-					ZoomMode="Both">
+					Sections="{Binding GraphServiceNeutronic.GraphFarToNearProbeRatio.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceNeutronic.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceNeutronic.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceNeutronic.PointerUpCommand}"
+					ZoomMode="X">
 				</lvc:CartesianChart>
 			</Border>
 
 			<Border Grid.Row="3" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding GraphServiceNeutronic.GraphTemperature.ProbeSeries}"
-					ZoomMode="Both">
+					Sections="{Binding GraphServiceNeutronic.GraphTemperature.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceNeutronic.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceNeutronic.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceNeutronic.PointerUpCommand}"
+					ZoomMode="X">
 				</lvc:CartesianChart>
 			</Border>
 		</Grid>

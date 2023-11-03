@@ -126,7 +126,8 @@ namespace LasAnalyzer.ViewModels
         public ReactiveCommand<PointerCommandArgs, Unit> PointerMoveCommand { get; }
         public ReactiveCommand<PointerCommandArgs, Unit> PointerUpCommand { get; }
 
-        public ReactiveCommand<Unit, Unit> ChangePointCommand { get; }
+        public ReactiveCommand<Unit, Unit> ChangeMaxPointCommand { get; }
+        public ReactiveCommand<Unit, Unit> ChangeMinPointCommand { get; }
         public ReactiveCommand<Unit, Unit> AcceptPointCommand { get; }
 
         public MainWindowViewModel()
@@ -148,27 +149,12 @@ namespace LasAnalyzer.ViewModels
             PointerMoveCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerMove);
             PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
 
-            ChangePointCommand = ReactiveCommand.Create(ChangePoint);
+            ChangeMaxPointCommand = ReactiveCommand.Create(ChangeMaxPoint);
+            ChangeMinPointCommand = ReactiveCommand.Create(ChangeMinPoint);
             AcceptPointCommand = ReactiveCommand.Create(AcceptPoint);
 
             YAxis = new[] 
             { new Axis()
-            };
-
-            Thumbs = new[]
-            {
-                new RectangularSection
-                {
-                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
-                    Xi = 0,
-                    Xj = 0,
-                    Stroke = new SolidColorPaint
-                    {
-                        Color = SKColors.Red,
-                        StrokeThickness = 3,
-                        ZIndex = 2
-                    }
-                }
             };
 
 
@@ -182,19 +168,12 @@ namespace LasAnalyzer.ViewModels
             MinValue = 0;
         }
         private Axis[] invisibleY;
-        private RectangularSection[] thumbs;
 
         public Axis[] YAxis
         {
             get => invisibleY;
             set => this.RaiseAndSetIfChanged(ref invisibleY, value);
         }
-        public RectangularSection[] Thumbs
-        {
-            get => thumbs;
-            set => this.RaiseAndSetIfChanged(ref thumbs, value);
-        }
-
 
         private double _maxValue;
         public double MaxValue
@@ -210,24 +189,41 @@ namespace LasAnalyzer.ViewModels
             set => this.RaiseAndSetIfChanged(ref _minValue, value);
         }
 
-        private void ChangePoint()
+        private void ChangeMaxPoint()
         {
-            isEnablePointMarking = true;
+            isEnableMaxPointMarking = true;
+            isEnableMinPointMarking = false;
+        }
+
+        private void ChangeMinPoint()
+        {
+            isEnableMinPointMarking = true;
+            isEnableMaxPointMarking = false;
         }
 
         private void AcceptPoint()
         {
-            isEnablePointMarking = false;
+            isEnableMaxPointMarking = false;
+            isEnableMinPointMarking = false;
         }
 
-        private bool isEnablePointMarking = false;
+        private bool isEnableMaxPointMarking = false;
+        private bool isEnableMinPointMarking = false;
 
         private bool isDragging = false;
         private LvcPointD lastPointerPosition;
 
         private void PointerDown(PointerCommandArgs args)
         {
-            if (isEnablePointMarking)
+            if (isEnableMaxPointMarking)
+            {
+                var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
+                var lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
+
+                //chart.Series.ToArray()[1].Values.
+                //GraphServiceGamma
+            }
+            else if (isEnableMinPointMarking)
             {
                 var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
                 var lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
@@ -237,7 +233,7 @@ namespace LasAnalyzer.ViewModels
                 isDragging = true;
                 var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
                 lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
-                var thumb = Thumbs[0];
+                var thumb = GraphServiceGamma.Thumbs[0];
 
                 // update the scroll bar thumb when the user is dragging the chart
                 thumb.Xi = lastPointerPosition.X;
@@ -252,15 +248,11 @@ namespace LasAnalyzer.ViewModels
             var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
             lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
 
-            var thumb = Thumbs[0];
+            var thumb = GraphServiceGamma.Thumbs[0];
 
             // update the scroll bar thumb when the user is dragging the chart
             thumb.Xi = lastPointerPosition.X;
             thumb.Xj = lastPointerPosition.X;
-
-            // update the chart visible range
-            //ScrollableAxes[0].MinLimit = thumb.Xi;
-            //ScrollableAxes[0].MaxLimit = thumb.Xj;
         }
 
         private void PointerUp(PointerCommandArgs args)
@@ -318,7 +310,7 @@ namespace LasAnalyzer.ViewModels
                     new Axis
                     {
                         //MaxLimit = LasDataForGamma.NearProbe.Max() * 1.1,
-                        MinLimit = LasDataForGamma.NearProbe.Min() * 0.9
+                        //MinLimit = LasDataForGamma.NearProbe.Min() * 0.9
                     }
                 };
             }
