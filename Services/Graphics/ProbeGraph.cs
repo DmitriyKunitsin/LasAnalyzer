@@ -1,8 +1,12 @@
-﻿using LasAnalyzer.Models;
+﻿using Avalonia.Controls.Primitives;
+using LasAnalyzer.Models;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
+using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel.Events;
+using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Drawing;
 using LiveChartsCore.SkiaSharpView.Painting;
 using ReactiveUI;
 using SkiaSharp;
@@ -30,9 +34,22 @@ namespace LasAnalyzer.Services.Graphics
         public ExtremumPoints HeatingExtremumPoints { get; set; }
         public ExtremumPoints CoolingExtremumPoints { get; set; }
 
-        public RectangularSection[] Thumbs { get; set; }
+        private RectangularSection[] _thumbs;
+        public RectangularSection[] Thumbs
+        {
+            get => _thumbs;
+            set
+            {
+                _thumbs[0].Xi = value[0].Xi;
+                _thumbs[0].Xj = value[0].Xj;
+            }
+        }
 
-        public ProbeGraph(string title)
+        public ReactiveCommand<PointerCommandArgs, Unit> PointerDownCommand { get; }
+        public ReactiveCommand<PointerCommandArgs, Unit> PointerMoveCommand { get; }
+        public ReactiveCommand<PointerCommandArgs, Unit> PointerUpCommand { get; }
+
+        public ProbeGraph(RectangularSection[] thumbs, string title)
         {
             Title = title;
 
@@ -43,7 +60,7 @@ namespace LasAnalyzer.Services.Graphics
                 LineSeries,
             };
 
-            Thumbs = new[]
+            _thumbs = new[]
             {
                 new RectangularSection
                 {
@@ -58,14 +75,16 @@ namespace LasAnalyzer.Services.Graphics
                     }
                 }
             };
+
+            Thumbs = thumbs;
         }
 
-        public ProbeGraph(List<double> data, string title, int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
+        public ProbeGraph(List<double> data, RectangularSection[] thumbs, string title, int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
         {
             Data = data;
             Title = title;
 
-            Thumbs = new[]
+            _thumbs = new[]
             {
                 new RectangularSection
                 {
@@ -80,6 +99,8 @@ namespace LasAnalyzer.Services.Graphics
                     }
                 }
             };
+
+            Thumbs = thumbs;
 
             LineSeries = new LineSeries<double>
             {
@@ -112,6 +133,7 @@ namespace LasAnalyzer.Services.Graphics
                             HeatingExtremumPoints.MaxPoint,
                             HeatingExtremumPoints.MinPoint,
                         },
+                    Fill = new SolidColorPaint(new SKColor(229, 57, 53, 100)),
                     Stroke = new SolidColorPaint
                     {
                         Color = SKColors.Red,
@@ -137,6 +159,7 @@ namespace LasAnalyzer.Services.Graphics
                             CoolingExtremumPoints.MaxPoint,
                             CoolingExtremumPoints.MinPoint,
                         },
+                    Fill = new SolidColorPaint(new SKColor(25, 118, 210, 100)),
                     Stroke = new SolidColorPaint
                     {
                         Color = SKColors.Blue,
@@ -153,31 +176,88 @@ namespace LasAnalyzer.Services.Graphics
                 HeatScatterSeries ?? new ScatterSeries<ObservablePoint>(),
                 CoolScatterSeries ?? new ScatterSeries<ObservablePoint>(),
             };
+
+            PointerDownCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerDown);
+            PointerMoveCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerMove);
+            PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
         }
+
+        public ObservablePoint GetNearlyExtrema(LvcPointD lastPointerPosition)
+        {
+            double dx = HeatingExtremumPoints.MaxPoint.X.Value - lastPointerPosition.X;
+            double dy = HeatingExtremumPoints.MaxPoint.Y.Value - lastPointerPosition.Y;
+
+            double distanceMax = Math.Sqrt(dx * dx + dy * dy);
+
+            double dx1 = HeatingExtremumPoints.MinPoint.X.Value - lastPointerPosition.X;
+            double dy1 = HeatingExtremumPoints.MinPoint.Y.Value - lastPointerPosition.Y;
+
+            double distanceMin = Math.Sqrt(dx1 * dx1 + dy1 * dy1);
+
+            if (distanceMax > distanceMin)
+            {
+                return HeatingExtremumPoints.MinPoint;
+            }
+            else
+            {
+                return HeatingExtremumPoints.MaxPoint;
+            }
+        }
+
+        public bool IsEnabledMovementChart = false;
+        public bool IsEnabledMovementVertLines = true;
+        public bool IsEnabledMovementPoints = false;
+
+        public LvcPointD LastPointerPosition;
+
+        private bool isDragging = false;
 
         public void PointerDown(PointerCommandArgs args)
         {
             // при наведении на точку она чуть увеличивается, за нее можно схватиться ЛКМ
             // мб флаг определяющий что конкретная точка схвачена
 
-            //HeatingExtremumPoints;
-            //CoolingExtremumPoints;
-            //if (true)
-            //{
+            isDragging = true;
 
+            var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
+            var lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
+
+            if (IsEnabledMovementVertLines)
+            {
+                LastPointerPosition = lastPointerPosition;
+                ChangeThumbPosition(LastPointerPosition);
+            }
+
+            //if (IsEnabledMovementPoints)
+            //{
+            //    var dist = FindExtremaNearPointer(lastPointerPosition);
             //}
-            throw new NotImplementedException();
         }
 
         public void PointerMove(PointerCommandArgs args)
         {
-            // после прожатия ЛКМ точку можно перемещать
-            throw new NotImplementedException();
+            if (!isDragging) return;
+
+            var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
+            var lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
+
+            if (IsEnabledMovementVertLines)
+            {
+                LastPointerPosition = lastPointerPosition;
+                ChangeThumbPosition(LastPointerPosition);
+            }
         }
 
         public void PointerUp(PointerCommandArgs args)
         {
-            throw new NotImplementedException();
+            isDragging = false;
+        }
+
+        private void ChangeThumbPosition(LvcPointD lastPointerPosition)
+        {
+            // update the scroll bar thumb when the user is dragging the chart
+            Thumbs[0].Xi = Math.Round(lastPointerPosition.X);
+            Thumbs[0].Xj = Math.Round(lastPointerPosition.X);
         }
 
         private ExtremumPoints FindExtremum(List<double> data, TempType tempType, int baseIndex)

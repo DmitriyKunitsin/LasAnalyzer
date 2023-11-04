@@ -126,9 +126,9 @@ namespace LasAnalyzer.ViewModels
         public ReactiveCommand<PointerCommandArgs, Unit> PointerMoveCommand { get; }
         public ReactiveCommand<PointerCommandArgs, Unit> PointerUpCommand { get; }
 
-        public ReactiveCommand<Unit, Unit> ChangeMaxPointCommand { get; }
-        public ReactiveCommand<Unit, Unit> ChangeMinPointCommand { get; }
-        public ReactiveCommand<Unit, Unit> AcceptPointCommand { get; }
+        public ReactiveCommand<Unit, Unit> EnableMovementChartComand { get; }
+        public ReactiveCommand<Unit, Unit> EnableMovementVerticalLinesComand { get; }
+        public ReactiveCommand<Unit, Unit> EnableMovementPointsComand { get; }
 
         public MainWindowViewModel()
         {
@@ -149,9 +149,9 @@ namespace LasAnalyzer.ViewModels
             PointerMoveCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerMove);
             PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
 
-            ChangeMaxPointCommand = ReactiveCommand.Create(ChangeMaxPoint);
-            ChangeMinPointCommand = ReactiveCommand.Create(ChangeMinPoint);
-            AcceptPointCommand = ReactiveCommand.Create(AcceptPoint);
+            EnableMovementChartComand = ReactiveCommand.Create(EnableMovementChart);
+            EnableMovementVerticalLinesComand = ReactiveCommand.Create(EnableMovementVerticalLines);
+            EnableMovementPointsComand = ReactiveCommand.Create(EnableMovementPoints);
 
             YAxis = new[] 
             { new Axis()
@@ -163,9 +163,6 @@ namespace LasAnalyzer.ViewModels
             IsHeatingSelected = true;
             IsCoolingSelected = true;
             IsGammaSelected = true;
-
-            MaxValue = 0;
-            MinValue = 0;
         }
         private Axis[] invisibleY;
 
@@ -175,33 +172,19 @@ namespace LasAnalyzer.ViewModels
             set => this.RaiseAndSetIfChanged(ref invisibleY, value);
         }
 
-        private double _maxValue;
-        public double MaxValue
-        {
-            get => _maxValue;
-            set => this.RaiseAndSetIfChanged(ref _maxValue, value);
-        }
-
-        private double _minValue;
-        public double MinValue
-        {
-            get => _minValue;
-            set => this.RaiseAndSetIfChanged(ref _minValue, value);
-        }
-
-        private void ChangeMaxPoint()
+        private void EnableMovementChart()
         {
             isEnableMaxPointMarking = true;
             isEnableMinPointMarking = false;
         }
 
-        private void ChangeMinPoint()
+        private void EnableMovementVerticalLines()
         {
             isEnableMinPointMarking = true;
             isEnableMaxPointMarking = false;
         }
 
-        private void AcceptPoint()
+        private void EnableMovementPoints()
         {
             isEnableMaxPointMarking = false;
             isEnableMinPointMarking = false;

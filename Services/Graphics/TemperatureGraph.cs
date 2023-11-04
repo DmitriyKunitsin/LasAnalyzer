@@ -2,6 +2,7 @@
 using LasAnalyzer.Models;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
+using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel.Events;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -30,9 +31,19 @@ namespace LasAnalyzer.Services.Graphics
         public int BaseHeatIndex { get; set; }
         public int BaseCoolIndex { get; set; }
 
-        public RectangularSection[] Thumbs { get; set; }
 
-        public TemperatureGraph(string title)
+        private RectangularSection[] _thumbs;
+        public RectangularSection[] Thumbs
+        {
+            get => _thumbs;
+            set
+            {
+                _thumbs[0].Xi = value[0].Xi;
+                _thumbs[0].Xj = value[0].Xj;
+            }
+        }
+
+        public TemperatureGraph(RectangularSection[] thumbs, string title)
         {
             Title = title;
 
@@ -43,7 +54,7 @@ namespace LasAnalyzer.Services.Graphics
                 LineSeries,
             };
 
-            Thumbs = new[]
+            _thumbs = new[]
             {
                 new RectangularSection
                 {
@@ -58,9 +69,11 @@ namespace LasAnalyzer.Services.Graphics
                     }
                 }
             };
+
+            Thumbs = thumbs;
         }
 
-        public TemperatureGraph(List<double> data, string title, int windowSize)
+        public TemperatureGraph(List<double> data, RectangularSection[] thumbs, string title, int windowSize)
         {
             Data = data;
             Title = title;
@@ -74,7 +87,7 @@ namespace LasAnalyzer.Services.Graphics
 
             FindIndexForBaseValue();
 
-            Thumbs = new[]
+            _thumbs = new[]
             {
                 new RectangularSection
                 {
@@ -89,6 +102,8 @@ namespace LasAnalyzer.Services.Graphics
                     }
                 }
             };
+
+            Thumbs = thumbs;
 
             LineSeries = new LineSeries<double>
             {

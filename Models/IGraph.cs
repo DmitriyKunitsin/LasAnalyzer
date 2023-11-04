@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using LiveChartsCore.Kernel.Events;
 using ReactiveUI;
 using System.Reactive;
+using LiveChartsCore.Drawing;
 
 namespace LasAnalyzer.Models
 {

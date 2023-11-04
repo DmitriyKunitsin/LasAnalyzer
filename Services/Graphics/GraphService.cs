@@ -33,23 +33,26 @@ namespace LasAnalyzer.Services.Graphics
         public RectangularSection[] Thumbs
         {
             get => thumbs;
-            set => this.RaiseAndSetIfChanged(ref thumbs, value);
+            set 
+            {
+                this.RaiseAndSetIfChanged(ref thumbs, value); 
+            }
         }
 
         public ReactiveCommand<PointerCommandArgs, Unit> PointerDownCommand { get; }
         public ReactiveCommand<PointerCommandArgs, Unit> PointerMoveCommand { get; }
         public ReactiveCommand<PointerCommandArgs, Unit> PointerUpCommand { get; }
 
+        public bool IsEnabledMovementChart = false;
+        public bool IsEnabledMovementVertLines = false;
+        public bool IsEnabledMovementPoints = false;
+
+        public LvcPointD LastPointerPosition;
+
         private bool isDragging = false;
-        private LvcPointD lastPointerPosition;
 
         public GraphService((string, string) titles)
         {
-            GraphTemperature = new TemperatureGraph("TEMPER");
-            GraphNearProbe = new ProbeGraph(titles.Item1);
-            GraphFarProbe = new ProbeGraph(titles.Item2);
-            GraphFarToNearProbeRatio = new ProbeGraph($"{titles.Item2}/{titles.Item1}");
-
             Thumbs = new[]
             {
                 new RectangularSection
@@ -65,11 +68,32 @@ namespace LasAnalyzer.Services.Graphics
                     }
                 }
             };
+
+            GraphTemperature = new TemperatureGraph(Thumbs, "TEMPER");
+            GraphNearProbe = new ProbeGraph(Thumbs, titles.Item1);
+            GraphFarProbe = new ProbeGraph(Thumbs, titles.Item2);
+            GraphFarToNearProbeRatio = new ProbeGraph(Thumbs, $"{titles.Item2}/{titles.Item1}");
         }
 
         public GraphService(GraphData graphData, (string, string) titles, int windowSize)
         {
-            GraphTemperature = new TemperatureGraph(graphData.Temperature, "TEMPER", windowSize);
+            Thumbs = new[]
+            {
+                new RectangularSection
+                {
+                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
+                    Xi = 0,
+                    Xj = 0,
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.Red,
+                        StrokeThickness = 3,
+                        ZIndex = 2
+                    }
+                }
+            };
+
+            GraphTemperature = new TemperatureGraph(graphData.Temperature, Thumbs, "TEMPER", windowSize);
 
             CoolingStartIndex = GraphTemperature.CoolingStartIndex;
             TemperatureType = GraphTemperature.TemperatureType;
@@ -77,25 +101,9 @@ namespace LasAnalyzer.Services.Graphics
             var baseHeatIndex = GraphTemperature.BaseHeatIndex;
             var baseCoolIndex = GraphTemperature.BaseCoolIndex;
 
-            GraphNearProbe = new ProbeGraph(graphData.NearProbe, titles.Item1, CoolingStartIndex, baseHeatIndex, baseCoolIndex);
-            GraphFarProbe = new ProbeGraph(graphData.FarProbe, titles.Item2, CoolingStartIndex, baseHeatIndex, baseCoolIndex);
-            GraphFarToNearProbeRatio = new ProbeGraph(graphData.FarToNearProbeRatio, $"{titles.Item2}/{titles.Item1}", CoolingStartIndex, baseHeatIndex, baseCoolIndex);
-
-            Thumbs = new[]
-            {
-                new RectangularSection
-                {
-                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
-                    Xi = 0,
-                    Xj = 0,
-                    Stroke = new SolidColorPaint
-                    {
-                        Color = SKColors.Red,
-                        StrokeThickness = 3,
-                        ZIndex = 2
-                    }
-                }
-            };
+            GraphNearProbe = new ProbeGraph(graphData.NearProbe, Thumbs, titles.Item1, CoolingStartIndex, baseHeatIndex, baseCoolIndex);
+            GraphFarProbe = new ProbeGraph(graphData.FarProbe, Thumbs, titles.Item2, CoolingStartIndex, baseHeatIndex, baseCoolIndex);
+            GraphFarToNearProbeRatio = new ProbeGraph(graphData.FarToNearProbeRatio, Thumbs, $"{titles.Item2}/{titles.Item1}", CoolingStartIndex, baseHeatIndex, baseCoolIndex);
 
             PointerDownCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerDown);
             PointerMoveCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerMove);
@@ -107,12 +115,18 @@ namespace LasAnalyzer.Services.Graphics
             isDragging = true;
 
             var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
-            lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
+            var lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
 
-            ChangeThumbPosition(GraphNearProbe.Thumbs[0], lastPointerPosition);
-            ChangeThumbPosition(GraphFarProbe.Thumbs[0], lastPointerPosition);
-            ChangeThumbPosition(GraphFarToNearProbeRatio.Thumbs[0], lastPointerPosition);
-            ChangeThumbPosition(GraphTemperature.Thumbs[0], lastPointerPosition);
+            if (IsEnabledMovementVertLines)
+            {
+                LastPointerPosition = lastPointerPosition;
+                ChangeThumbPosition(LastPointerPosition);
+            }
+
+            //if (IsEnabledMovementPoints)
+            //{
+            //    var dist = FindExtremaNearPointer(lastPointerPosition);
+            //}
         }
 
         private void PointerMove(PointerCommandArgs args)
@@ -120,12 +134,13 @@ namespace LasAnalyzer.Services.Graphics
             if (!isDragging) return;
 
             var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
-            lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
+            var lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
 
-            ChangeThumbPosition(GraphNearProbe.Thumbs[0], lastPointerPosition);
-            ChangeThumbPosition(GraphFarProbe.Thumbs[0], lastPointerPosition);
-            ChangeThumbPosition(GraphFarToNearProbeRatio.Thumbs[0], lastPointerPosition);
-            ChangeThumbPosition(GraphTemperature.Thumbs[0], lastPointerPosition);
+            if (IsEnabledMovementVertLines)
+            {
+                LastPointerPosition = lastPointerPosition;
+                ChangeThumbPosition(LastPointerPosition);
+            }
         }
 
         private void PointerUp(PointerCommandArgs args)
@@ -133,11 +148,34 @@ namespace LasAnalyzer.Services.Graphics
             isDragging = false;
         }
 
-        private void ChangeThumbPosition(RectangularSection thumb, LvcPointD lastPointerPosition)
+        private double FindExtremaNearPointer(LvcPointD LastPointerPosition)
+        {
+            List<ProbeGraph> DistList = new List<ProbeGraph>
+            {
+                GraphNearProbe,
+                GraphFarProbe,
+                GraphFarToNearProbeRatio
+            };
+
+            var asd = DistList.Select(graph => graph.GetNearlyExtrema(LastPointerPosition)).OrderBy(point => point);
+
+            return 0;
+        }
+        
+        private void ChangeThumbPosition(LvcPointD lastPointerPosition)
         {
             // update the scroll bar thumb when the user is dragging the chart
-            thumb.Xi = Math.Round(lastPointerPosition.X);
-            thumb.Xj = Math.Round(lastPointerPosition.X);
+            GraphNearProbe.Thumbs[0].Xi = Math.Round(lastPointerPosition.X);
+            GraphNearProbe.Thumbs[0].Xj = Math.Round(lastPointerPosition.X);
+
+            GraphFarProbe.Thumbs[0].Xi = Math.Round(lastPointerPosition.X);
+            GraphFarProbe.Thumbs[0].Xj = Math.Round(lastPointerPosition.X);
+
+            GraphFarToNearProbeRatio.Thumbs[0].Xi = Math.Round(lastPointerPosition.X);
+            GraphFarToNearProbeRatio.Thumbs[0].Xj = Math.Round(lastPointerPosition.X);
+
+            GraphTemperature.Thumbs[0].Xi = Math.Round(lastPointerPosition.X);
+            GraphTemperature.Thumbs[0].Xj = Math.Round(lastPointerPosition.X);
         }
     }
 }
