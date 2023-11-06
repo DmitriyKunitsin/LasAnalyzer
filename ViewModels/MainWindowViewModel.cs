@@ -50,9 +50,16 @@ namespace LasAnalyzer.ViewModels
         private bool isCoolingSelected;
         private bool isGammaSelected;
         private bool isNeutronicSelected;
+        private ZoomAndPanMode _zoomMode;
 
         public GraphData LasDataForGamma { get; set; }
         public GraphData LasDataForNeutronic { get; set; }
+
+        public ZoomAndPanMode ZoomMode
+        {
+            get => _zoomMode;
+            set => this.RaiseAndSetIfChanged(ref _zoomMode, value);
+        }
 
         public GraphService GraphServiceGamma
         {
@@ -157,7 +164,7 @@ namespace LasAnalyzer.ViewModels
             { new Axis()
             };
 
-
+            ZoomMode = ZoomAndPanMode.X;
             WindowSize = 60;
             SmoothingIterations = 3;
             IsHeatingSelected = true;
@@ -174,20 +181,32 @@ namespace LasAnalyzer.ViewModels
 
         private void EnableMovementChart()
         {
-            isEnableMaxPointMarking = true;
-            isEnableMinPointMarking = false;
+            ZoomMode = ZoomMode == ZoomAndPanMode.ZoomX ? ZoomAndPanMode.X : ZoomAndPanMode.ZoomX;
+            GraphServiceGamma.IsEnabledMovementVertLines = false;
+            GraphServiceGamma.IsEnabledMovementPoints = false;
+
+            GraphServiceNeutronic.IsEnabledMovementVertLines = false;
+            GraphServiceNeutronic.IsEnabledMovementPoints = false;
         }
 
         private void EnableMovementVerticalLines()
         {
-            isEnableMinPointMarking = true;
-            isEnableMaxPointMarking = false;
+            ZoomMode = ZoomAndPanMode.ZoomX;
+            GraphServiceGamma.IsEnabledMovementVertLines = !GraphServiceGamma.IsEnabledMovementVertLines;
+            GraphServiceGamma.IsEnabledMovementPoints = false;
+
+            GraphServiceNeutronic.IsEnabledMovementVertLines = !GraphServiceNeutronic.IsEnabledMovementVertLines;
+            GraphServiceNeutronic.IsEnabledMovementPoints = false;
         }
 
         private void EnableMovementPoints()
         {
-            isEnableMaxPointMarking = false;
-            isEnableMinPointMarking = false;
+            ZoomMode = ZoomAndPanMode.ZoomX;
+            GraphServiceGamma.IsEnabledMovementVertLines = false;
+            GraphServiceGamma.IsEnabledMovementPoints = !GraphServiceGamma.IsEnabledMovementPoints;
+
+            GraphServiceNeutronic.IsEnabledMovementVertLines = false;
+            GraphServiceNeutronic.IsEnabledMovementPoints = !GraphServiceNeutronic.IsEnabledMovementPoints;
         }
 
         private bool isEnableMaxPointMarking = false;

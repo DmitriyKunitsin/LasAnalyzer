@@ -25,8 +25,7 @@ namespace LasAnalyzer.Services.Graphics
     {
         public ISeries[] ProbeSeries { get; set; }
         public LineSeries<double> LineSeries { get; set; }
-        public ScatterSeries<ObservablePoint> HeatScatterSeries { get; set; }
-        public ScatterSeries<ObservablePoint> CoolScatterSeries { get; set; }
+        public ScatterSeries<ObservablePoint> ScatterSeries { get; set; }
         public List<double> Data { get; set; }
         public string Title { get; set; }
 
@@ -34,23 +33,50 @@ namespace LasAnalyzer.Services.Graphics
         public ExtremumPoints HeatingExtremumPoints { get; set; }
         public ExtremumPoints CoolingExtremumPoints { get; set; }
 
-        private RectangularSection[] _thumbs;
-        public RectangularSection[] Thumbs
-        {
-            get => _thumbs;
-            set
-            {
-                _thumbs[0].Xi = value[0].Xi;
-                _thumbs[0].Xj = value[0].Xj;
-            }
-        }
+        public RectangularSection[] Thumbs { get; set; }
+
+        public ObservablePoint NearlyExtrema { get; set; }
 
         public ReactiveCommand<PointerCommandArgs, Unit> PointerDownCommand { get; }
         public ReactiveCommand<PointerCommandArgs, Unit> PointerMoveCommand { get; }
         public ReactiveCommand<PointerCommandArgs, Unit> PointerUpCommand { get; }
 
-        public ProbeGraph(RectangularSection[] thumbs, string title)
+        public bool IsEnabledMovementChart { get; set; } = false;
+        public bool IsEnabledMovementVertLines { get; set; } = true;
+        public bool IsEnabledMovementPoints { get; set; } = false;
+
+        private bool isDragging = false;
+
+        public ProbeGraph(string title)
         {
+            Thumbs = new[]
+            {
+                new RectangularSection
+                {
+                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
+                    Xi = 0,
+                    Xj = 0,
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.Red,
+                        StrokeThickness = 3,
+                        ZIndex = 2
+                    }
+                },
+                new RectangularSection
+                {
+                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
+                    Xi = 0,
+                    Xj = 0,
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.DeepSkyBlue,
+                        StrokeThickness = 3,
+                        ZIndex = 2
+                    }
+                }
+            };
+
             Title = title;
 
             LineSeries = new LineSeries<double>();
@@ -59,32 +85,14 @@ namespace LasAnalyzer.Services.Graphics
             {
                 LineSeries,
             };
-
-            _thumbs = new[]
-            {
-                new RectangularSection
-                {
-                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
-                    Xi = 0,
-                    Xj = 0,
-                    Stroke = new SolidColorPaint
-                    {
-                        Color = SKColors.Red,
-                        StrokeThickness = 3,
-                        ZIndex = 2
-                    }
-                }
-            };
-
-            Thumbs = thumbs;
         }
 
-        public ProbeGraph(List<double> data, RectangularSection[] thumbs, string title, int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
+        public ProbeGraph(List<double> data, string title, int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
         {
             Data = data;
             Title = title;
 
-            _thumbs = new[]
+            Thumbs = new[]
             {
                 new RectangularSection
                 {
@@ -97,10 +105,20 @@ namespace LasAnalyzer.Services.Graphics
                         StrokeThickness = 3,
                         ZIndex = 2
                     }
+                },
+                new RectangularSection
+                {
+                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
+                    Xi = data.Count - 1,
+                    Xj = data.Count - 1,
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.DeepSkyBlue,
+                        StrokeThickness = 3,
+                        ZIndex = 2
+                    }
                 }
             };
-
-            Thumbs = thumbs;
 
             LineSeries = new LineSeries<double>
             {
@@ -114,67 +132,45 @@ namespace LasAnalyzer.Services.Graphics
                     StrokeThickness = 3,
                     ZIndex = 1
                 },
+                LineSmoothness = 0,
                 ZIndex = 1,
             };
 
-
-            if (baseHeatIndex != -1)
+            HeatingExtremumPoints = FindExtremum(
+                data.Take(coolingStartIndex).ToList(),
+                TempType.Heating,
+                baseHeatIndex
+            );
+            CoolingExtremumPoints = FindExtremum(
+                data.Skip(coolingStartIndex).ToList(),
+                TempType.Cooling,
+                baseCoolIndex
+            );
+            ScatterSeries = new ScatterSeries<ObservablePoint>
             {
-                HeatingExtremumPoints = FindExtremum(
-                    data.Take(coolingStartIndex).ToList(),
-                    TempType.Heating,
-                    baseHeatIndex
-                );
-                HeatScatterSeries = new ScatterSeries<ObservablePoint>
+                Values = new ObservableCollection<ObservablePoint>
                 {
-                    Values = new ObservableCollection<ObservablePoint>
-                        {
-                            HeatingExtremumPoints.BasePoint,
-                            HeatingExtremumPoints.MaxPoint,
-                            HeatingExtremumPoints.MinPoint,
-                        },
-                    Fill = new SolidColorPaint(new SKColor(229, 57, 53, 100)),
-                    Stroke = new SolidColorPaint
-                    {
-                        Color = SKColors.Red,
-                        StrokeThickness = 3,
-                        ZIndex = 1
-                    },
-                    GeometrySize = 10
-                };
-            }
-
-            if (baseCoolIndex != -1)
-            {
-                CoolingExtremumPoints = FindExtremum(
-                    data.Skip(coolingStartIndex).ToList(),
-                    TempType.Cooling,
-                    baseCoolIndex
-                );
-                CoolScatterSeries = new ScatterSeries<ObservablePoint>
+                    HeatingExtremumPoints.BasePoint,
+                    CoolingExtremumPoints.BasePoint,
+                    HeatingExtremumPoints.MaxPoint,
+                    HeatingExtremumPoints.MinPoint,
+                    CoolingExtremumPoints.MaxPoint,
+                    CoolingExtremumPoints.MinPoint,
+                },
+                Fill = new SolidColorPaint(new SKColor(229, 57, 53, 100)),
+                Stroke = new SolidColorPaint
                 {
-                    Values = new ObservableCollection<ObservablePoint>
-                        {
-                            CoolingExtremumPoints.BasePoint,
-                            CoolingExtremumPoints.MaxPoint,
-                            CoolingExtremumPoints.MinPoint,
-                        },
-                    Fill = new SolidColorPaint(new SKColor(25, 118, 210, 100)),
-                    Stroke = new SolidColorPaint
-                    {
-                        Color = SKColors.Blue,
-                        StrokeThickness = 3,
-                        ZIndex = 1
-                    },
-                    GeometrySize = 10
-                };
-            }
+                    Color = SKColors.Red,
+                    StrokeThickness = 3,
+                    ZIndex = 1
+                },
+                GeometrySize = 10,
+            };
 
             ProbeSeries = new ISeries[]
             {
                 LineSeries,
-                HeatScatterSeries ?? new ScatterSeries<ObservablePoint>(),
-                CoolScatterSeries ?? new ScatterSeries<ObservablePoint>(),
+                ScatterSeries
             };
 
             PointerDownCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerDown);
@@ -182,35 +178,21 @@ namespace LasAnalyzer.Services.Graphics
             PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
         }
 
-        public ObservablePoint GetNearlyExtrema(LvcPointD lastPointerPosition)
+        private double GetDistanceToPointer(ObservablePoint point, LvcPointD lastPointerPosition)
         {
-            double dx = HeatingExtremumPoints.MaxPoint.X.Value - lastPointerPosition.X;
-            double dy = HeatingExtremumPoints.MaxPoint.Y.Value - lastPointerPosition.Y;
+            double dx = point.X.Value - lastPointerPosition.X;
+            double dy = point.Y.Value - lastPointerPosition.Y;
 
-            double distanceMax = Math.Sqrt(dx * dx + dy * dy);
-
-            double dx1 = HeatingExtremumPoints.MinPoint.X.Value - lastPointerPosition.X;
-            double dy1 = HeatingExtremumPoints.MinPoint.Y.Value - lastPointerPosition.Y;
-
-            double distanceMin = Math.Sqrt(dx1 * dx1 + dy1 * dy1);
-
-            if (distanceMax > distanceMin)
-            {
-                return HeatingExtremumPoints.MinPoint;
-            }
-            else
-            {
-                return HeatingExtremumPoints.MaxPoint;
-            }
+            double distance = Math.Sqrt(dx * dx + dy * dy);
+            return distance;
         }
 
-        public bool IsEnabledMovementChart = false;
-        public bool IsEnabledMovementVertLines = true;
-        public bool IsEnabledMovementPoints = false;
+        public ObservablePoint GetNearlyExtrema(LvcPointD lastPointerPosition)
+        {
+            NearlyExtrema = ScatterSeries.Values.Skip(2).Where(point => point != null).OrderBy(point => GetDistanceToPointer(point, lastPointerPosition)).First();
 
-        public LvcPointD LastPointerPosition;
-
-        private bool isDragging = false;
+            return NearlyExtrema;
+        }
 
         public void PointerDown(PointerCommandArgs args)
         {
@@ -224,8 +206,8 @@ namespace LasAnalyzer.Services.Graphics
 
             if (IsEnabledMovementVertLines)
             {
-                LastPointerPosition = lastPointerPosition;
-                ChangeThumbPosition(LastPointerPosition);
+                //LastPointerPosition = lastPointerPosition;
+                //ChangeThumbPosition(LastPointerPosition);
             }
 
             //if (IsEnabledMovementPoints)
@@ -243,8 +225,8 @@ namespace LasAnalyzer.Services.Graphics
 
             if (IsEnabledMovementVertLines)
             {
-                LastPointerPosition = lastPointerPosition;
-                ChangeThumbPosition(LastPointerPosition);
+                //LastPointerPosition = lastPointerPosition;
+                //ChangeThumbPosition(LastPointerPosition);
             }
         }
 
@@ -253,15 +235,26 @@ namespace LasAnalyzer.Services.Graphics
             isDragging = false;
         }
 
-        private void ChangeThumbPosition(LvcPointD lastPointerPosition)
+        public void ChangeThumbPosition(LvcPointD lastPointerPosition)
         {
             // update the scroll bar thumb when the user is dragging the chart
-            Thumbs[0].Xi = Math.Round(lastPointerPosition.X);
-            Thumbs[0].Xj = Math.Round(lastPointerPosition.X);
+            var numVertLine = 0;
+            if (Math.Abs(Thumbs[0].Xi.Value - lastPointerPosition.X) > Math.Abs(Thumbs[1].Xi.Value - lastPointerPosition.X))
+            {
+                numVertLine = 1;
+            }
+            Thumbs[numVertLine].Xi = Math.Round(lastPointerPosition.X);
+            Thumbs[numVertLine].Xj = Math.Round(lastPointerPosition.X);
         }
 
+
+
+        // points for calc
         private ExtremumPoints FindExtremum(List<double> data, TempType tempType, int baseIndex)
         {
+            if (baseIndex == -1)
+                return new ExtremumPoints();
+
             ExtremumPoints ExtremumPoints = new ExtremumPoints();
 
             ExtremumPoints.BasePoint = FindBaseValues(data, tempType, baseIndex);

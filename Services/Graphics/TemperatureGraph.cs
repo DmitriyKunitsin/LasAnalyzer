@@ -31,30 +31,11 @@ namespace LasAnalyzer.Services.Graphics
         public int BaseHeatIndex { get; set; }
         public int BaseCoolIndex { get; set; }
 
+        public RectangularSection[] Thumbs { get; set; }
 
-        private RectangularSection[] _thumbs;
-        public RectangularSection[] Thumbs
+        public TemperatureGraph(string title)
         {
-            get => _thumbs;
-            set
-            {
-                _thumbs[0].Xi = value[0].Xi;
-                _thumbs[0].Xj = value[0].Xj;
-            }
-        }
-
-        public TemperatureGraph(RectangularSection[] thumbs, string title)
-        {
-            Title = title;
-
-            LineSeries = new LineSeries<double>();
-
-            ProbeSeries = new ISeries[]
-            {
-                LineSeries,
-            };
-
-            _thumbs = new[]
+            Thumbs = new[]
             {
                 new RectangularSection
                 {
@@ -67,13 +48,32 @@ namespace LasAnalyzer.Services.Graphics
                         StrokeThickness = 3,
                         ZIndex = 2
                     }
+                },
+                new RectangularSection
+                {
+                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
+                    Xi = 0,
+                    Xj = 0,
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.DeepSkyBlue,
+                        StrokeThickness = 3,
+                        ZIndex = 2
+                    }
                 }
             };
 
-            Thumbs = thumbs;
+            Title = title;
+
+            LineSeries = new LineSeries<double>();
+
+            ProbeSeries = new ISeries[]
+            {
+                LineSeries,
+            };
         }
 
-        public TemperatureGraph(List<double> data, RectangularSection[] thumbs, string title, int windowSize)
+        public TemperatureGraph(List<double> data, string title, int windowSize)
         {
             Data = data;
             Title = title;
@@ -87,7 +87,7 @@ namespace LasAnalyzer.Services.Graphics
 
             FindIndexForBaseValue();
 
-            _thumbs = new[]
+            Thumbs = new[]
             {
                 new RectangularSection
                 {
@@ -100,10 +100,20 @@ namespace LasAnalyzer.Services.Graphics
                         StrokeThickness = 3,
                         ZIndex = 2
                     }
+                },
+                new RectangularSection
+                {
+                    Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100)),
+                    Xi = data.Count - 1,
+                    Xj = data.Count - 1,
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.DeepSkyBlue,
+                        StrokeThickness = 3,
+                        ZIndex = 2
+                    }
                 }
             };
-
-            Thumbs = thumbs;
 
             LineSeries = new LineSeries<double>
             {
@@ -117,6 +127,7 @@ namespace LasAnalyzer.Services.Graphics
                     StrokeThickness = 3,
                     ZIndex = 1
                 },
+                LineSmoothness = 0,
                 ZIndex = 1,
             };
 
@@ -139,6 +150,18 @@ namespace LasAnalyzer.Services.Graphics
         public void PointerUp(PointerCommandArgs args)
         {
             throw new NotImplementedException();
+        }
+
+        public void ChangeThumbPosition(LvcPointD lastPointerPosition)
+        {
+            // update the scroll bar thumb when the user is dragging the chart
+            var numVertLine = 0;
+            if (Math.Abs(Thumbs[0].Xi.Value - lastPointerPosition.X) > Math.Abs(Thumbs[1].Xi.Value - lastPointerPosition.X))
+            {
+                numVertLine = 1;
+            }
+            Thumbs[numVertLine].Xi = Math.Round(lastPointerPosition.X);
+            Thumbs[numVertLine].Xj = Math.Round(lastPointerPosition.X);
         }
 
         private void FindHeatingCoolingTransitionIndex()
