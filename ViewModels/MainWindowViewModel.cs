@@ -262,6 +262,7 @@ namespace LasAnalyzer.ViewModels
             }
 
             // todo: temper for realdepth
+            // todo: fit temper length to smoothed data length
             var smoothedNearProbeData = DataProcessor.SmoothDataWithCount(LasData.Data["RSD"].ToList(), WindowSize, SmoothingIterations);
             var smoothedFarProbeData = DataProcessor.SmoothDataWithCount(LasData.Data["RLD"].ToList(), WindowSize, SmoothingIterations);
             var smoothedFarToNearRatio = DataProcessor.DivideArrays(smoothedFarProbeData, smoothedNearProbeData);
