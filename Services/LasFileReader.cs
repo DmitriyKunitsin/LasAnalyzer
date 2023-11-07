@@ -1,10 +1,15 @@
-﻿using LasAnalyzer.Models;
+﻿using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
+using LasAnalyzer.Models;
+using LasAnalyzer.Services.Graphics;
 using Looch.LasParser;
 using OxyPlot;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -13,29 +18,48 @@ namespace LasAnalyzer.Services
 {
     public class LasFileReader
     {
-        public (GraphData, GraphData) OpenLasFile(string filePath)
+        public async Task<LasParser> GetLasData()
+        {
+            var file = await DoOpenFilePickerAsync();
+            if (file is null) return null;
+
+            string filePath = HttpUtility.UrlDecode(file.Path.AbsolutePath);
+
+            var lasData = OpenLasFile(filePath);
+            if (lasData is null) return null;
+
+            return lasData;
+        }
+
+        private LasParser OpenLasFile(string filePath)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            LasParserVlasov lasParserVlasov = new LasParserVlasov();
-            lasParserVlasov.ReadFile(filePath, "windows-1251");
-            var rsd = lasParserVlasov.Data["RSD"].ToList();
-            var rld = lasParserVlasov.Data["RLD"];
-            var temper = lasParserVlasov.Data["MT"];
+            LasParser lasParser = new LasParser();
+            lasParser.ReadFile(filePath, "windows-1251");
 
-            var graphData = new GraphData
+            return lasParser;
+        }
+
+        private async Task<IStorageFile?> DoOpenFilePickerAsync()
+        {
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
+                desktop.MainWindow?.StorageProvider is not { } provider)
+                throw new NullReferenceException("Missing StorageProvider instance.");
+
+            FilePickerFileType LasFileType = new("Las files")
             {
-                NearProbe = rsd,
-                FarProbe = rld,
-                FarToNearProbeRatio = rsd,
-                Temperature = temper,
-                Time = temper
+                Patterns = new[] { "*.las" },
             };
 
-            DataGenerator dataGenerator = new DataGenerator();
-            var graphDataForGamma = dataGenerator.GenerateGraphData(1000);
-            var graphDataForNeutronic = dataGenerator.GenerateGraphData(1000);
-            return (graphDataForGamma, graphDataForNeutronic);
+            var files = await provider.OpenFilePickerAsync(new FilePickerOpenOptions()
+            {
+                Title = "Open Text File",
+                FileTypeFilter = new[] { LasFileType },
+                AllowMultiple = false
+            });
+
+            return files?.Count >= 1 ? files[0] : null;
         }
     }
 }

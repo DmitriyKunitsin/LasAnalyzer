@@ -20,8 +20,8 @@ namespace LasAnalyzer.Services.Graphics
     public class TemperatureGraph : IGraph
     {
         public ISeries[] ProbeSeries { get; set; }
-        public LineSeries<double> LineSeries { get; set; }
-        public List<double> Data { get; set; }
+        public LineSeries<double?> LineSeries { get; set; }
+        public List<double?> Data { get; set; }
         public string Title { get; set; }
         public int WindowSize { get; set; }
         public int CoolingStartIndex { get; set; }
@@ -65,7 +65,7 @@ namespace LasAnalyzer.Services.Graphics
 
             Title = title;
 
-            LineSeries = new LineSeries<double>();
+            LineSeries = new LineSeries<double?>();
 
             ProbeSeries = new ISeries[]
             {
@@ -73,7 +73,7 @@ namespace LasAnalyzer.Services.Graphics
             };
         }
 
-        public TemperatureGraph(List<double> data, string title, int windowSize)
+        public TemperatureGraph(List<double?> data, string title, int windowSize)
         {
             Data = data;
             Title = title;
@@ -115,7 +115,7 @@ namespace LasAnalyzer.Services.Graphics
                 }
             };
 
-            LineSeries = new LineSeries<double>
+            LineSeries = new LineSeries<double?>
             {
                 Values = data,
                 GeometryStroke = null,
@@ -169,8 +169,9 @@ namespace LasAnalyzer.Services.Graphics
             bool hasHeating = false;
             bool hasCooling = false;
             int coolingStartIndex = -1;
+            double? max = Data.Max();
 
-            for (int i = 1; i < Data.Count; i++)
+            for (int i = Data.Count - 1; i > 0; i--)
             {
                 if (Data[i - 1] < Data[i])
                 {
@@ -179,7 +180,10 @@ namespace LasAnalyzer.Services.Graphics
                 else if (Data[i - 1] > Data[i])
                 {
                     hasCooling = true;
-                    coolingStartIndex = i;
+                    if (Data[i - 1] == max && coolingStartIndex == -1)
+                    {
+                        coolingStartIndex = i;
+                    }
                 }
             }
 
@@ -213,7 +217,7 @@ namespace LasAnalyzer.Services.Graphics
                     BaseHeatIndex = Math.Min(tBaseMaxIndex.Value, WindowSize * 5);
                 }
             }
-            else if (TemperatureType == TempType.Cooling || TemperatureType == TempType.Both)
+            if (TemperatureType == TempType.Cooling || TemperatureType == TempType.Both)
             {
                 var tBaseMaxIndex = FindTemperatureRisePoint(Data, searchLeft: false);
                 if (tBaseMaxIndex != null)
@@ -230,14 +234,14 @@ namespace LasAnalyzer.Services.Graphics
             }
         }
 
-        private int? FindTemperatureRisePoint(List<double> tempData, bool searchLeft)
+        private int? FindTemperatureRisePoint(List<double?> tempData, bool searchLeft)
         {
             int start = searchLeft ? 0 : tempData.Count - 1;
             int step = searchLeft ? 1 : -1;
 
             for (int i = start; searchLeft ? i < tempData.Count - 1 : i > 0; i += step)
             {
-                double tempDifference = searchLeft ? tempData[i + 1] - tempData[i] : tempData[i - 1] - tempData[i];
+                double tempDifference = searchLeft ? tempData[i + 1].Value - tempData[i].Value : tempData[i - 1].Value - tempData[i].Value;
 
                 if (tempDifference >= 1)
                 {

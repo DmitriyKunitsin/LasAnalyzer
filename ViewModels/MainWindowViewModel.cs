@@ -34,6 +34,7 @@ using LiveChartsCore.SkiaSharpView.Painting.Effects;
 using LiveChartsCore.Measure;
 using LasAnalyzer.Services.Graphics;
 using System.Web;
+using Looch.LasParser;
 
 namespace LasAnalyzer.ViewModels
 {
@@ -53,8 +54,9 @@ namespace LasAnalyzer.ViewModels
         private bool isNeutronicSelected;
         private ZoomAndPanMode _zoomMode;
 
-        public GraphData LasDataForGamma { get; set; }
-        public GraphData LasDataForNeutronic { get; set; }
+        public LasParser LasData { get; set; }
+        //public GraphData LasDataForGamma { get; set; }
+        //public GraphData LasDataForNeutronic { get; set; }
 
         public ZoomAndPanMode ZoomMode
         {
@@ -126,13 +128,16 @@ namespace LasAnalyzer.ViewModels
             set => this.RaiseAndSetIfChanged(ref line, value);
         }
 
+        private Axis[] invisibleY;
+        public Axis[] YAxis
+        {
+            get => invisibleY;
+            set => this.RaiseAndSetIfChanged(ref invisibleY, value);
+        }
+
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGraphWindowCommand { get; }
         public ReactiveCommand<Unit, Unit> CreateAndSaveReportCommand { get; }
-
-        public ReactiveCommand<PointerCommandArgs, Unit> PointerDownCommand { get; }
-        public ReactiveCommand<PointerCommandArgs, Unit> PointerMoveCommand { get; }
-        public ReactiveCommand<PointerCommandArgs, Unit> PointerUpCommand { get; }
 
         public ReactiveCommand<Unit, Unit> EnableMovementChartComand { get; }
         public ReactiveCommand<Unit, Unit> EnableMovementVerticalLinesComand { get; }
@@ -143,27 +148,28 @@ namespace LasAnalyzer.ViewModels
             _lasFileReader = new LasFileReader();
             _docxWriter = new DocxWriter();
 
-            OpenLasFileCommand = ReactiveCommand.CreateFromTask(OpenLasFileAsync);
+            OpenLasFileCommand = ReactiveCommand.CreateFromTask(GetLasData);
             OpenGraphWindowCommand = ReactiveCommand.Create(OpenGraphWindow);
             CreateAndSaveReportCommand = ReactiveCommand.Create(CreateAndSaveReport);
 
-            MessageBus.Current.Listen<GraphData>("GraphDataMessage")
-            .Subscribe(graphData => ReceiveGraphData(graphData)); ///
+            //MessageBus.Current.Listen<GraphData>("GraphDataMessage")
+            //.Subscribe(graphData => ReceiveGraphData(graphData)); ///
 
             GraphServiceGamma = new GraphService(("RSD", "RLD"));
             GraphServiceNeutronic = new GraphService(("NTNC", "FTNC"));
-
-            PointerDownCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerDown);
-            PointerMoveCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerMove);
-            PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
 
             EnableMovementChartComand = ReactiveCommand.Create(EnableMovementChart);
             EnableMovementVerticalLinesComand = ReactiveCommand.Create(EnableMovementVerticalLines);
             EnableMovementPointsComand = ReactiveCommand.Create(EnableMovementPoints);
 
-            YAxis = new[] 
-            { new Axis()
-            };
+            YAxis = new[]
+                {
+                    new Axis
+                    {
+                        //MaxLimit = LasDataForGamma.NearProbe.Max() * 1.1,
+                        //MinLimit = LasDataForGamma.NearProbe.Min() * 0.9
+                    }
+                };
 
             ZoomMode = ZoomAndPanMode.X;
             WindowSize = 60;
@@ -172,13 +178,7 @@ namespace LasAnalyzer.ViewModels
             IsCoolingSelected = true;
             IsGammaSelected = true;
         }
-        private Axis[] invisibleY;
-
-        public Axis[] YAxis
-        {
-            get => invisibleY;
-            set => this.RaiseAndSetIfChanged(ref invisibleY, value);
-        }
+        
 
         private void EnableMovementChart()
         {
@@ -210,63 +210,10 @@ namespace LasAnalyzer.ViewModels
             GraphServiceNeutronic.IsEnabledMovementPoints = !GraphServiceNeutronic.IsEnabledMovementPoints;
         }
 
-        private bool isEnableMaxPointMarking = false;
-        private bool isEnableMinPointMarking = false;
-
-        private bool isDragging = false;
-        private LvcPointD lastPointerPosition;
-
-        private void PointerDown(PointerCommandArgs args)
-        {
-            if (isEnableMaxPointMarking)
-            {
-                var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
-                var lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
-
-                //chart.Series.ToArray()[1].Values.
-                //GraphServiceGamma
-            }
-            else if (isEnableMinPointMarking)
-            {
-                var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
-                var lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
-            }
-            else
-            {
-                isDragging = true;
-                var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
-                lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
-                var thumb = GraphServiceGamma.Thumbs[0];
-
-                // update the scroll bar thumb when the user is dragging the chart
-                thumb.Xi = lastPointerPosition.X;
-                thumb.Xj = lastPointerPosition.X;
-            }
-        }
-
-        private void PointerMove(PointerCommandArgs args)
-        {
-            if (!isDragging) return;
-
-            var chart = (ICartesianChartView<SkiaSharpDrawingContext>)args.Chart;
-            lastPointerPosition = chart.ScalePixelsToData(args.PointerPosition);
-
-            var thumb = GraphServiceGamma.Thumbs[0];
-
-            // update the scroll bar thumb when the user is dragging the chart
-            thumb.Xi = lastPointerPosition.X;
-            thumb.Xj = lastPointerPosition.X;
-        }
-
-        private void PointerUp(PointerCommandArgs args)
-        {
-            isDragging = false;
-        }
-
-        private void ReceiveGraphData(GraphData graphData)
-        {
-            LasDataForGamma = graphData; /// for graph window
-        }
+        //private void ReceiveGraphData(GraphData graphData)
+        //{
+        //    LasDataForGamma = graphData; /// for graph window
+        //}
         
         private void CreateAndSaveReport()
         {
@@ -274,8 +221,8 @@ namespace LasAnalyzer.ViewModels
                 GraphServiceGamma,
                 GraphServiceNeutronic,
                 IsHeatingSelected,
-                IsCoolingSelected,
-                WindowSize);
+                IsCoolingSelected
+            );
         }
 
         private void OpenGraphWindow()
@@ -285,7 +232,7 @@ namespace LasAnalyzer.ViewModels
             if (graphWindow == null)
             {
                 graphWindow = new GraphWindow();
-                MessageBus.Current.SendMessage(LasDataForGamma, "GraphDataMessage");
+                //MessageBus.Current.SendMessage(LasDataForGamma, "GraphDataMessage");
                 graphWindow.Show();
             }
             else
@@ -294,54 +241,65 @@ namespace LasAnalyzer.ViewModels
             }
         }
 
-        private async Task<Unit> OpenLasFileAsync()
+        private async Task GetLasData()
         {
-            var file = await DoOpenFilePickerAsync();
-            if (file is null) return Unit.Default;
+            var lasData = await _lasFileReader.GetLasData();
+            if (lasData is null)
+                return;
 
-            string decodedFilePath = HttpUtility.UrlDecode(file.Path.AbsolutePath);
+            LasData = lasData;
 
-            var lasData = _lasFileReader.OpenLasFile(decodedFilePath);
-            if (lasData.Item1 is not null)
-            {
-                LasDataForGamma = lasData.Item1;
-                LasDataForNeutronic = lasData.Item2;
-
-                GraphServiceGamma = new GraphService(lasData.Item1, ("RSD", "RLD"), WindowSize);
-                GraphServiceNeutronic = new GraphService(lasData.Item2, ("NTNC", "FTNC"), WindowSize);
-
-                YAxis = new[]
-                {
-                    new Axis
-                    {
-                        //MaxLimit = LasDataForGamma.NearProbe.Max() * 1.1,
-                        //MinLimit = LasDataForGamma.NearProbe.Min() * 0.9
-                    }
-                };
-            }
-
-            return Unit.Default;
+            SetGammaData();
+            SetNeutronicData();
         }
 
-        private async Task<IStorageFile?> DoOpenFilePickerAsync()
+        private void SetGammaData()
         {
-            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
-                desktop.MainWindow?.StorageProvider is not { } provider)
-                throw new NullReferenceException("Missing StorageProvider instance.");
-
-            FilePickerFileType LasFileType = new("Las files")
+            if (!LasData.Data.ContainsKey("RSD"))
             {
-                Patterns = new[] { "*.las" },
+                GraphServiceGamma = new GraphService(("RSD", "RLD"));
+                return;
+            }
+
+            // todo: temper for realdepth
+            var smoothedNearProbeData = DataProcessor.SmoothDataWithCount(LasData.Data["RSD"].ToList(), WindowSize, SmoothingIterations);
+            var smoothedFarProbeData = DataProcessor.SmoothDataWithCount(LasData.Data["RLD"].ToList(), WindowSize, SmoothingIterations);
+            var smoothedFarToNearRatio = DataProcessor.DivideArrays(smoothedFarProbeData, smoothedNearProbeData);
+
+            var graphData = new GraphData
+            {
+                NearProbe = smoothedNearProbeData,
+                FarProbe = smoothedFarProbeData,
+                FarToNearProbeRatio = smoothedFarToNearRatio,
+                Temperature = LasData.Data["MT"].ToList(),
+                Time = LasData.Data["TIME"].ToList()
             };
 
-            var files = await provider.OpenFilePickerAsync(new FilePickerOpenOptions()
-            {
-                Title = "Open Text File",
-                FileTypeFilter = new[] { LasFileType },
-                AllowMultiple = false
-            });
+            GraphServiceGamma = new GraphService(graphData, ("RSD", "RLD"), WindowSize);
+        }
 
-            return files?.Count >= 1 ? files[0] : null;
+        private void SetNeutronicData()
+        {
+            if (!LasData.Data.ContainsKey("NTNC"))
+            {
+                GraphServiceNeutronic = new GraphService(("NTNC", "FTNC"));
+                return;
+            }
+
+            var smoothedNearProbeData = DataProcessor.SmoothDataWithCount(LasData.Data["NTNC"].ToList(), WindowSize, SmoothingIterations);
+            var smoothedFarProbeData = DataProcessor.SmoothDataWithCount(LasData.Data["FTNC"].ToList(), WindowSize, SmoothingIterations);
+            var smoothedFarToNearRatio = DataProcessor.DivideArrays(smoothedFarProbeData, smoothedNearProbeData);
+
+            var graphData = new GraphData
+            {
+                NearProbe = smoothedNearProbeData,
+                FarProbe = smoothedFarProbeData,
+                FarToNearProbeRatio = smoothedFarToNearRatio,
+                Temperature = LasData.Data["MT"].ToList(),
+                Time = LasData.Data["TIME"].ToList()
+            };
+
+            GraphServiceNeutronic = new GraphService(graphData, ("NTNC", "FTNC"), WindowSize);
         }
     }
 }

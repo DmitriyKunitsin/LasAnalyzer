@@ -89,14 +89,14 @@ namespace LasAnalyzer.Services
             }
         }
 
-        private Table setFormulas(Table table, double baseTemper)
+        private Table setFormulas(Table table, double? baseTemper)
         {
             // suda lu4we ne smotret
-            table.Rows[0].Cells[1].Paragraphs.First().InsertText($"N(T={baseTemper})");
+            table.Rows[0].Cells[1].Paragraphs.First().InsertText($"N(T={baseTemper.Value})");
             table.Rows[1].Cells[1].Paragraphs.First().InsertText("MAX/T");
             table.Rows[2].Cells[1].Paragraphs.First().InsertText("MIN/T");
-            table.Rows[3].Cells[1].Paragraphs.First().InsertText($"MAX - N(T={baseTemper})");
-            table.Rows[4].Cells[1].Paragraphs.First().InsertText($"N(T={baseTemper}) - MIN");
+            table.Rows[3].Cells[1].Paragraphs.First().InsertText($"MAX - N(T={baseTemper.Value})");
+            table.Rows[4].Cells[1].Paragraphs.First().InsertText($"N(T={baseTemper.Value}) - MIN");
             table.Rows[5].Cells[1].Paragraphs.First().InsertText("% MAX");
             table.Rows[6].Cells[1].Paragraphs.First().InsertText("% MIN");
 
@@ -112,50 +112,41 @@ namespace LasAnalyzer.Services
             GraphService graphServiceGamma,
             GraphService graphServiceNeutronic,
             bool isHeatingSelected,
-            bool isCoolingSelected,
-            int windowSize
+            bool isCoolingSelected
         )
         {
-            if (graphServiceGamma is not null)
+            // todo: another condition for save report, mb use property IsDataSetted in GraphService
+            if (graphServiceGamma.GraphNearProbe.Data is not null)
             {
                 // todo: create and fill reportModel in MainWindowViewModel
                 SaveReport(
                     graphServiceGamma,
-                    "RSD",
-                    "RLD",
                     isHeatingSelected,
-                    isCoolingSelected,
-                    windowSize
+                    isCoolingSelected
                 );
             }
-            if (graphServiceNeutronic is not null)
+            if (graphServiceNeutronic.GraphNearProbe.Data is not null)
             {
                 SaveReport(
                     graphServiceNeutronic,
-                    "NTNC",
-                    "FTNC",
                     isHeatingSelected,
-                    isCoolingSelected,
-                    windowSize
+                    isCoolingSelected
                 );
             }
         }
 
         private void SaveReport(
             GraphService graphService,
-            string nearProbeTitle,
-            string farProbeTitle,
             bool isHeatingSelected,
-            bool isCoolingSelected,
-            int windowSize
+            bool isCoolingSelected
         )
         {
             List<byte[]> chartImageDatas = new List<byte[]>()
                 {
-                    createChartImage(graphService.GraphNearProbe.Data, nearProbeTitle),
-                    createChartImage(graphService.GraphFarProbe.Data, farProbeTitle),
-                    createChartImage(graphService.GraphFarToNearProbeRatio.Data, $"{nearProbeTitle}/{farProbeTitle}"),
-                    createChartImage(graphService.GraphTemperature.Data, "TEMPER")
+                    createChartImage(graphService.GraphNearProbe.Data, graphService.GraphNearProbe.Title),
+                    createChartImage(graphService.GraphFarProbe.Data, graphService.GraphFarProbe.Title),
+                    createChartImage(graphService.GraphFarToNearProbeRatio.Data, graphService.GraphFarToNearProbeRatio.Title),
+                    createChartImage(graphService.GraphTemperature.Data, graphService.GraphTemperature.Title)
                 };
 
             ReportModel ReportModel = new ReportModel()
@@ -169,8 +160,7 @@ namespace LasAnalyzer.Services
                 Results = CalculatorWrapper(
                     graphService,
                     isHeatingSelected,
-                    isCoolingSelected,
-                    windowSize
+                    isCoolingSelected
                 ),
                 Conclusion = "> < 5 %"
             };
@@ -180,23 +170,22 @@ namespace LasAnalyzer.Services
         private List<ResultTable> CalculatorWrapper(
             GraphService graphService,
             bool isHeatingSelected,
-            bool isCoolingSelected,
-            int windowSize
+            bool isCoolingSelected
         )
         {
             var calculator = new Calculator();
             var tableList = new List<ResultTable>();
 
-            if (isHeatingSelected)
+            if ((graphService.TemperatureType == TempType.Heating || graphService.TemperatureType == TempType.Both) && isHeatingSelected)
                 tableList.Add(calculator.CalculateMetrics(graphService, TempType.Heating));
 
-            if (isCoolingSelected)
+            if ((graphService.TemperatureType == TempType.Cooling || graphService.TemperatureType == TempType.Both) && isCoolingSelected)
                 tableList.Add(calculator.CalculateMetrics(graphService, TempType.Cooling));
 
             return tableList;
         }
 
-        private byte[] createChartImage(List<double> data, string title)
+        private byte[] createChartImage(List<double?> data, string title)
         {
             var cartesianChart = new SKCartesianChart
             {
@@ -204,7 +193,7 @@ namespace LasAnalyzer.Services
                 Height = 400,
                 Series = new ISeries[]
                 {
-                    new LineSeries<double> { Values = data },
+                    new LineSeries<double?> { Values = data },
                 },
                 Title = new LabelVisual
                 {

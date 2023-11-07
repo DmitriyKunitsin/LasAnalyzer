@@ -24,9 +24,9 @@ namespace LasAnalyzer.Services.Graphics
     public class ProbeGraph : IGraph
     {
         public ISeries[] ProbeSeries { get; set; }
-        public LineSeries<double> LineSeries { get; set; }
+        public LineSeries<double?> LineSeries { get; set; }
         public ScatterSeries<ObservablePoint> ScatterSeries { get; set; }
-        public List<double> Data { get; set; }
+        public List<double?> Data { get; set; }
         public string Title { get; set; }
 
         // Points
@@ -79,7 +79,7 @@ namespace LasAnalyzer.Services.Graphics
 
             Title = title;
 
-            LineSeries = new LineSeries<double>();
+            LineSeries = new LineSeries<double?>();
 
             ProbeSeries = new ISeries[]
             {
@@ -87,7 +87,7 @@ namespace LasAnalyzer.Services.Graphics
             };
         }
 
-        public ProbeGraph(List<double> data, string title, int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
+        public ProbeGraph(List<double?> data, string title, int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
         {
             Data = data;
             Title = title;
@@ -120,7 +120,7 @@ namespace LasAnalyzer.Services.Graphics
                 }
             };
 
-            LineSeries = new LineSeries<double>
+            LineSeries = new LineSeries<double?>
             {
                 Values = data,
                 GeometryStroke = null,
@@ -139,13 +139,19 @@ namespace LasAnalyzer.Services.Graphics
             HeatingExtremumPoints = FindExtremum(
                 data.Take(coolingStartIndex).ToList(),
                 TempType.Heating,
-                baseHeatIndex
+                baseHeatIndex,
+                coolingStartIndex
             );
             CoolingExtremumPoints = FindExtremum(
                 data.Skip(coolingStartIndex).ToList(),
                 TempType.Cooling,
-                baseCoolIndex
+                baseCoolIndex - coolingStartIndex,
+                coolingStartIndex
             );
+            // todo: use 6 sckatter series with 1 ObservablePoint
+            // мб использовать пункирную линию для отрисовки минимума
+            // использовать более темные цвета для отрисовки базовой точки
+            // mb use VisualElement instead ScatterSeries?
             ScatterSeries = new ScatterSeries<ObservablePoint>
             {
                 Values = new ObservableCollection<ObservablePoint>
@@ -250,7 +256,7 @@ namespace LasAnalyzer.Services.Graphics
 
 
         // points for calc
-        private ExtremumPoints FindExtremum(List<double> data, TempType tempType, int baseIndex)
+        private ExtremumPoints FindExtremum(List<double?> data, TempType tempType, int baseIndex, int coolingStartIndex)
         {
             if (baseIndex == -1)
                 return new ExtremumPoints();
@@ -261,10 +267,18 @@ namespace LasAnalyzer.Services.Graphics
             ExtremumPoints.MaxPoint = FindMaxExtremum(data, ExtremumPoints.BasePoint);
             ExtremumPoints.MinPoint = FindMinExtremum(data, ExtremumPoints.BasePoint);
 
+            // todo: fix this shit
+            if (tempType == TempType.Cooling)
+            {
+                ExtremumPoints.BasePoint.X = ExtremumPoints.BasePoint.X.Value + coolingStartIndex;
+                ExtremumPoints.MaxPoint.X = ExtremumPoints.MaxPoint.X.Value + coolingStartIndex;
+                ExtremumPoints.MinPoint.X = ExtremumPoints.MinPoint.X.Value + coolingStartIndex;
+            }
+
             return ExtremumPoints;
         }
 
-        public ObservablePoint FindBaseValues(List<double> data, TempType tempType, int baseIndex)
+        public ObservablePoint FindBaseValues(List<double?> data, TempType tempType, int baseIndex)
         {
             var basePoint = new ObservablePoint();
             basePoint.X = baseIndex;
@@ -283,7 +297,7 @@ namespace LasAnalyzer.Services.Graphics
             return basePoint;
         }
 
-        private ObservablePoint FindMaxExtremum(List<double> data, ObservablePoint basePoint)
+        private ObservablePoint FindMaxExtremum(List<double?> data, ObservablePoint basePoint)
         {
             var maxPoint = new ObservablePoint();
             var maxIdx = data.IndexOf(data.Max());
@@ -303,7 +317,7 @@ namespace LasAnalyzer.Services.Graphics
             return maxPoint;
         }
 
-        private ObservablePoint FindMinExtremum(List<double> data, ObservablePoint basePoint)
+        private ObservablePoint FindMinExtremum(List<double?> data, ObservablePoint basePoint)
         {
             var minPoint = new ObservablePoint();
             var minIdx = data.IndexOf(data.Min());
@@ -323,9 +337,9 @@ namespace LasAnalyzer.Services.Graphics
             return minPoint;
         }
 
-        private bool IsExceedThreshold(double value, double baseValue, double threshold = 0.005)
+        private bool IsExceedThreshold(double? extrema, double baseValue, double threshold = 0.005)
         {
-            return Math.Abs((value - baseValue) / baseValue) > threshold;
+            return Math.Abs((extrema.Value - baseValue) / baseValue) > threshold;
         }
     }
 }

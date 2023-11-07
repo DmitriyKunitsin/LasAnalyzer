@@ -7,9 +7,9 @@ using System.Text;
 
 namespace Looch.LasParser
 {
-    public class LasParserVlasov
+    public class LasParser
     {
-        public LasParserVlasov()
+        public LasParser()
         {
             Clear();
         }

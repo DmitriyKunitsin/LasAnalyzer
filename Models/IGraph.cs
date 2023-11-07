@@ -16,8 +16,8 @@ namespace LasAnalyzer.Models
     public interface IGraph
     {
         public ISeries[] ProbeSeries { get; set; }
-        public LineSeries<double> LineSeries { get; set; }
-        public List<double> Data { get; set; }
+        public LineSeries<double?> LineSeries { get; set; }
+        public List<double?> Data { get; set; }
         public string Title { get; set; }
 
         void PointerDown(PointerCommandArgs args);

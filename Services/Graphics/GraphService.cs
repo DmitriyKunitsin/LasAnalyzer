@@ -120,17 +120,20 @@ namespace LasAnalyzer.Services.Graphics
             {
                 if (chart.Series.Count() > 1)
                 {
+                    // todo: spread to another methods
                     NearlyExtrema = ((ScatterSeries<ObservablePoint>)chart.Series.ToList()[1]).Values.Skip(2)
                         .Where(point => point != null)
                         .OrderBy(point => GetDistanceToPointer(point, lastPointerPosition)).First();
-                    var x = Math.Round(lastPointerPosition.X) > ((LineSeries<double>)chart.Series.ToList()[0]).Values.Count() - 1 
+
+                    var idx = ((LineSeries<double?>)chart.Series.ToList()[0]).Values.Count() - 1;
+                    idx = Convert.ToInt32(Math.Round(lastPointerPosition.X)) > idx
                         ?
-                        ((LineSeries<double>)chart.Series.ToList()[0]).Values.Count() - 1 
+                        idx
                         :
-                        Math.Round(lastPointerPosition.X);
-                    x = x < 0 ? 0 : x;
-                    NearlyExtrema.X = x;
-                    NearlyExtrema.Y = ((LineSeries<double>)chart.Series.ToList()[0]).Values.ToList()[Convert.ToInt32(x)];
+                        Convert.ToInt32(Math.Round(lastPointerPosition.X));
+                    idx = idx < 0 ? 0 : idx;
+                    NearlyExtrema.X = idx;
+                    NearlyExtrema.Y = ((LineSeries<double?>)chart.Series.ToList()[0]).Values.ToList()[idx];
                 }
             }
         }
@@ -152,14 +155,15 @@ namespace LasAnalyzer.Services.Graphics
             {
                 if (chart.Series.Count() > 1)
                 {
-                    var x = Math.Round(lastPointerPosition.X) > ((LineSeries<double>)chart.Series.ToList()[0]).Values.Count() - 1 
+                    var idx = ((LineSeries<double?>)chart.Series.ToList()[0]).Values.Count() - 1;
+                    idx = Convert.ToInt32(Math.Round(lastPointerPosition.X)) > idx
                         ?
-                        ((LineSeries<double>)chart.Series.ToList()[0]).Values.Count() - 1 
+                        idx
                         :
-                        Math.Round(lastPointerPosition.X);
-                    x = x < 0 ? 0 : x;
-                    NearlyExtrema.X = x;
-                    NearlyExtrema.Y = ((LineSeries<double>)chart.Series.ToList()[0]).Values.ToList()[Convert.ToInt32(x)];
+                        Convert.ToInt32(Math.Round(lastPointerPosition.X));
+                    idx = idx < 0 ? 0 : idx;
+                    NearlyExtrema.X = idx;
+                    NearlyExtrema.Y = ((LineSeries<double?>)chart.Series.ToList()[0]).Values.ToList()[idx];
                 }
             }
         }
@@ -176,20 +180,6 @@ namespace LasAnalyzer.Services.Graphics
             return dx;
         }
 
-        private ProbeGraph FindExtremaNearPointer(LvcPointD lastPointerPosition)
-        {
-            List<ProbeGraph> pointList = new List<ProbeGraph>
-            {
-                GraphNearProbe,
-                GraphFarProbe,
-                GraphFarToNearProbeRatio
-            };
-
-            var extrema = pointList.OrderBy(graph => GetDistanceToPointer(graph.GetNearlyExtrema(lastPointerPosition), lastPointerPosition)).First();
-
-            return extrema;
-        }
-        
         private void ChangeThumbPosition(LvcPointD lastPointerPosition)
         {
             // update the scroll bar thumb when the user is dragging the chart
@@ -198,5 +188,7 @@ namespace LasAnalyzer.Services.Graphics
             GraphFarProbe.ChangeThumbPosition(lastPointerPosition);
             GraphFarToNearProbeRatio.ChangeThumbPosition(lastPointerPosition);
         }
+
+
     }
 }

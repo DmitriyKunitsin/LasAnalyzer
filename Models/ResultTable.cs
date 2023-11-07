@@ -10,6 +10,6 @@ namespace LasAnalyzer.Models
     {
         public List<Result> Results { get; set; }
         public TempType TempType { get; set; }
-        public double TemperBase { get; set; }
+        public double? TemperBase { get; set; }
     }
 }

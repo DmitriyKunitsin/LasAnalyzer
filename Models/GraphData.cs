@@ -8,10 +8,10 @@ namespace LasAnalyzer.Models
 {
     public class GraphData
     {
-        public List<double> NearProbe { get; set; }
-        public List<double> FarProbe { get; set; }
-        public List<double> FarToNearProbeRatio { get; set; }
-        public List<double> Temperature { get; set; }
-        public List<double> Time { get; set; }
+        public List<double?> NearProbe { get; set; }
+        public List<double?> FarProbe { get; set; }
+        public List<double?> FarToNearProbeRatio { get; set; }
+        public List<double?> Temperature { get; set; }
+        public List<double?> Time { get; set; }
     }
 }
