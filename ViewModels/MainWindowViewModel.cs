@@ -33,6 +33,7 @@ using LiveChartsCore.SkiaSharpView.Drawing;
 using LiveChartsCore.SkiaSharpView.Painting.Effects;
 using LiveChartsCore.Measure;
 using LasAnalyzer.Services.Graphics;
+using System.Web;
 
 namespace LasAnalyzer.ViewModels
 {
@@ -298,7 +299,9 @@ namespace LasAnalyzer.ViewModels
             var file = await DoOpenFilePickerAsync();
             if (file is null) return Unit.Default;
 
-            var lasData = _lasFileReader.OpenLasFile(file.Path.AbsolutePath);
+            string decodedFilePath = HttpUtility.UrlDecode(file.Path.AbsolutePath);
+
+            var lasData = _lasFileReader.OpenLasFile(decodedFilePath);
             if (lasData.Item1 is not null)
             {
                 LasDataForGamma = lasData.Item1;
