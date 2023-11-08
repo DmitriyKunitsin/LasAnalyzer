@@ -143,6 +143,9 @@ namespace LasAnalyzer.ViewModels
         public ReactiveCommand<Unit, Unit> EnableMovementVerticalLinesComand { get; }
         public ReactiveCommand<Unit, Unit> EnableMovementPointsComand { get; }
 
+        //public ReactiveCommand<Unit, Unit> CropGammaDataCommand { get; }
+        //public ReactiveCommand<Unit, Unit> CropNeutronicDataCommand { get; }
+
         public MainWindowViewModel()
         {
             _lasFileReader = new LasFileReader();
@@ -162,6 +165,9 @@ namespace LasAnalyzer.ViewModels
             EnableMovementVerticalLinesComand = ReactiveCommand.Create(EnableMovementVerticalLines);
             EnableMovementPointsComand = ReactiveCommand.Create(EnableMovementPoints);
 
+            //CropGammaDataCommand = ReactiveCommand.Create(GraphServiceGamma.CropData);
+            //CropNeutronicDataCommand = ReactiveCommand.Create(GraphServiceNeutronic.CropData);
+
             YAxis = new[]
                 {
                     new Axis
@@ -178,7 +184,6 @@ namespace LasAnalyzer.ViewModels
             IsCoolingSelected = true;
             IsGammaSelected = true;
         }
-        
 
         private void EnableMovementChart()
         {

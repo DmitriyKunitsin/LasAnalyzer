@@ -36,6 +36,8 @@ namespace LasAnalyzer.Services.Graphics
         public ReactiveCommand<PointerCommandArgs, Unit> PointerMoveCommand { get; }
         public ReactiveCommand<PointerCommandArgs, Unit> PointerUpCommand { get; }
 
+        public ReactiveCommand<Unit, Unit> CropDataCommand { get; }
+
         public bool IsEnabledMovementVertLines { get; set; } = false;
         public bool IsEnabledMovementPoints { get; set; } = false;
 
@@ -101,6 +103,23 @@ namespace LasAnalyzer.Services.Graphics
             PointerDownCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerDown);
             PointerMoveCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerMove);
             PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
+
+            CropDataCommand = ReactiveCommand.Create(CropData);
+        }
+
+        public void CropData()
+        {
+            GraphTemperature.CropData();
+
+            CoolingStartIndex = GraphTemperature.CoolingStartIndex;
+            TemperatureType = GraphTemperature.TemperatureType;
+
+            var baseHeatIndex = GraphTemperature.BaseHeatIndex;
+            var baseCoolIndex = GraphTemperature.BaseCoolIndex;
+
+            GraphNearProbe.CropData(CoolingStartIndex, baseHeatIndex, baseCoolIndex);
+            GraphFarProbe.CropData(CoolingStartIndex, baseHeatIndex, baseCoolIndex);
+            GraphFarToNearProbeRatio.CropData(CoolingStartIndex, baseHeatIndex, baseCoolIndex);
         }
 
         private void PointerDown(PointerCommandArgs args)
@@ -112,6 +131,15 @@ namespace LasAnalyzer.Services.Graphics
 
             if (IsEnabledMovementVertLines)
             {
+                var pointerX = Math.Round(lastPointerPosition.X);
+                var idx = pointerX > GraphNearProbe.Data.Count - 1
+                    ?
+                    GraphNearProbe.Data.Count - 1
+                    :
+                    pointerX;
+                idx = idx < 0 ? 0 : idx;
+
+                lastPointerPosition.X = idx;
                 LastPointerPosition = lastPointerPosition;
                 ChangeThumbPosition(LastPointerPosition);
             }
@@ -147,6 +175,15 @@ namespace LasAnalyzer.Services.Graphics
 
             if (IsEnabledMovementVertLines)
             {
+                var pointerX = Math.Round(lastPointerPosition.X);
+                var idx = pointerX > GraphNearProbe.Data.Count - 1
+                    ?
+                    GraphNearProbe.Data.Count - 1
+                    :
+                    pointerX;
+                idx = idx < 0 ? 0 : idx;
+
+                lastPointerPosition.X = idx;
                 LastPointerPosition = lastPointerPosition;
                 ChangeThumbPosition(LastPointerPosition);
             }
@@ -188,7 +225,5 @@ namespace LasAnalyzer.Services.Graphics
             GraphFarProbe.ChangeThumbPosition(lastPointerPosition);
             GraphFarToNearProbeRatio.ChangeThumbPosition(lastPointerPosition);
         }
-
-
     }
 }

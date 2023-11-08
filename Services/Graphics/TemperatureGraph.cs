@@ -17,9 +17,14 @@ using System.Threading.Tasks;
 
 namespace LasAnalyzer.Services.Graphics
 {
-    public class TemperatureGraph : IGraph
+    public class TemperatureGraph : ReactiveObject, IGraph
     {
-        public ISeries[] ProbeSeries { get; set; }
+        private ISeries[] _probeSeries;
+        public ISeries[] ProbeSeries
+        {
+            get => _probeSeries;
+            set => this.RaiseAndSetIfChanged(ref _probeSeries, value);
+        }
         public LineSeries<double?> LineSeries { get; set; }
         public List<double?> Data { get; set; }
         public string Title { get; set; }
@@ -79,14 +84,6 @@ namespace LasAnalyzer.Services.Graphics
             Title = title;
             WindowSize = windowSize;
 
-            BaseHeatIndex = -1;
-            BaseCoolIndex = -1;
-            CoolingStartIndex = -1;
-
-            FindHeatingCoolingTransitionIndex();
-
-            FindIndexForBaseValue();
-
             Thumbs = new[]
             {
                 new RectangularSection
@@ -115,9 +112,28 @@ namespace LasAnalyzer.Services.Graphics
                 }
             };
 
+            SetProbeSeriesData();
+        }
+
+        private void SetProbeSeriesData()
+        {
+            BaseHeatIndex = -1;
+            BaseCoolIndex = -1;
+            CoolingStartIndex = -1;
+
+            FindHeatingCoolingTransitionIndex();
+
+            FindIndexForBaseValue();
+
+            Thumbs[0].Xi = 0;
+            Thumbs[0].Xj = 0;
+
+            Thumbs[1].Xi = Data.Count - 1;
+            Thumbs[1].Xj = Data.Count - 1;
+
             LineSeries = new LineSeries<double?>
             {
-                Values = data,
+                Values = Data,
                 GeometryStroke = null,
                 GeometryFill = null,
                 Fill = null,
@@ -160,8 +176,16 @@ namespace LasAnalyzer.Services.Graphics
             {
                 numVertLine = 1;
             }
-            Thumbs[numVertLine].Xi = Math.Round(lastPointerPosition.X);
-            Thumbs[numVertLine].Xj = Math.Round(lastPointerPosition.X);
+            Thumbs[numVertLine].Xi = lastPointerPosition.X;
+            Thumbs[numVertLine].Xj = lastPointerPosition.X;
+        }
+
+        public void CropData()
+        {
+            Data = Data.Skip(Convert.ToInt32(Thumbs[0].Xi.Value)).ToList();
+            Data = Data.Take(Convert.ToInt32(Thumbs[1].Xi.Value)).ToList();
+
+            SetProbeSeriesData();
         }
 
         private void FindHeatingCoolingTransitionIndex()
@@ -170,14 +194,15 @@ namespace LasAnalyzer.Services.Graphics
             bool hasCooling = false;
             int coolingStartIndex = -1;
             double? max = Data.Max();
+            double? threshold = 2;
 
             for (int i = Data.Count - 1; i > 0; i--)
             {
-                if (Data[i - 1] < Data[i])
+                if (Data[i] - Data[i - 1] >= threshold && Data[i] == max)
                 {
                     hasHeating = true;
                 }
-                else if (Data[i - 1] > Data[i])
+                else if (Data[i - 1] - Data[i] >= threshold && Data[i - 1] == max)
                 {
                     hasCooling = true;
                     if (Data[i - 1] == max && coolingStartIndex == -1)

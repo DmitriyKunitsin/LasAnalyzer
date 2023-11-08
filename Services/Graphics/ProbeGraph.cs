@@ -21,9 +21,14 @@ using System.Threading.Tasks;
 
 namespace LasAnalyzer.Services.Graphics
 {
-    public class ProbeGraph : IGraph
+    public class ProbeGraph : ReactiveObject, IGraph
     {
-        public ISeries[] ProbeSeries { get; set; }
+        private ISeries[] _probeSeries;
+        public ISeries[] ProbeSeries
+        {
+            get => _probeSeries;
+            set => this.RaiseAndSetIfChanged(ref _probeSeries, value);
+        }
         public LineSeries<double?> LineSeries { get; set; }
         public ScatterSeries<ObservablePoint> ScatterSeries { get; set; }
         public List<double?> Data { get; set; }
@@ -120,6 +125,21 @@ namespace LasAnalyzer.Services.Graphics
                 }
             };
 
+            SetProbeSeriesData(data, coolingStartIndex, baseHeatIndex, baseCoolIndex);
+
+            PointerDownCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerDown);
+            PointerMoveCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerMove);
+            PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
+        }
+
+        private void SetProbeSeriesData(List<double?> data, int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
+        {
+            Thumbs[0].Xi = 0;
+            Thumbs[0].Xj = 0;
+
+            Thumbs[1].Xi = data.Count - 1;
+            Thumbs[1].Xj = data.Count - 1;
+
             LineSeries = new LineSeries<double?>
             {
                 Values = data,
@@ -178,10 +198,6 @@ namespace LasAnalyzer.Services.Graphics
                 LineSeries,
                 ScatterSeries
             };
-
-            PointerDownCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerDown);
-            PointerMoveCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerMove);
-            PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
         }
 
         private double GetDistanceToPointer(ObservablePoint point, LvcPointD lastPointerPosition)
@@ -249,8 +265,16 @@ namespace LasAnalyzer.Services.Graphics
             {
                 numVertLine = 1;
             }
-            Thumbs[numVertLine].Xi = Math.Round(lastPointerPosition.X);
-            Thumbs[numVertLine].Xj = Math.Round(lastPointerPosition.X);
+            Thumbs[numVertLine].Xi = lastPointerPosition.X;
+            Thumbs[numVertLine].Xj = lastPointerPosition.X;
+        }
+
+        public void CropData(int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
+        {
+            Data = Data.Skip(Convert.ToInt32(Thumbs[0].Xi.Value)).ToList();
+            Data = Data.Take(Convert.ToInt32(Thumbs[1].Xi.Value)).ToList();
+
+            SetProbeSeriesData(Data, coolingStartIndex, baseHeatIndex, baseCoolIndex);
         }
 
 

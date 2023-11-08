@@ -118,7 +118,7 @@
 				</lvc:CartesianChart>
 			</Border>
 
-			<Button Grid.Row="4" Grid.Column="1" Content="Обрезать"/>
+			<Button Grid.Row="4" Grid.Column="1" Content="Обрезать" Command="{Binding GraphServiceGamma.CropDataCommand}"/>
 		</Grid>
 
 		<GridSplitter Grid.Column="2" Background="Black" ResizeDirection="Columns"/>
@@ -177,7 +177,7 @@
 				</lvc:CartesianChart>
 			</Border>
 
-			<Button Grid.Row="4" Grid.Column="3" Content="Обрезать"/>
+			<Button Grid.Row="4" Grid.Column="3" Content="Обрезать" Command="{Binding GraphServiceNeutronic.CropDataCommand}"/>
 		</Grid>
 	</Grid>
 
