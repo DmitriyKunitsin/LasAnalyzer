@@ -29,7 +29,7 @@ namespace LasAnalyzer.Services.Graphics
         public List<double?> Data { get; set; }
         public string Title { get; set; }
         public int WindowSize { get; set; }
-        public int CoolingStartIndex { get; set; }
+        public int TransitionIndex { get; set; }
         public TempType TemperatureType { get; set; }
 
         // базовые индексы нужны чтобы измерить базовые значения показаний зондов
@@ -119,7 +119,7 @@ namespace LasAnalyzer.Services.Graphics
         {
             BaseHeatIndex = -1;
             BaseCoolIndex = -1;
-            CoolingStartIndex = -1;
+            TransitionIndex = -1;
 
             FindHeatingCoolingTransitionIndex();
 
@@ -192,29 +192,49 @@ namespace LasAnalyzer.Services.Graphics
         {
             bool hasHeating = false;
             bool hasCooling = false;
-            int coolingStartIndex = -1;
+            int startIndex = -1;
+            int LastMaxIndex = -1;
             double? max = Data.Max();
             double? threshold = 2;
 
             for (int i = Data.Count - 1; i > 0; i--)
             {
-                if (Data[i] - Data[i - 1] >= threshold && Data[i] == max)
+                // нахождение последнего максимума
+                // обработка дребезга (+-0,5)
+                // продумать для 3 случаев, только нагрев или охлад или оба
+                if (startIndex == -1)
+                {
+                    startIndex = i;
+                }
+                if (Data[i] == max && LastMaxIndex == -1)
+                {
+                    LastMaxIndex = i;
+                }
+
+                if (Data[i] - Data[i - 1])
+                {
+
+                }
+                
+                double? temperatureChange = Data[i] - Data[i - 1];
+
+                if (temperatureChange >= threshold && Data[i] == max)
                 {
                     hasHeating = true;
                 }
-                else if (Data[i - 1] - Data[i] >= threshold && Data[i - 1] == max)
+                else if (temperatureChange <= -threshold && Data[i - 1] == max)
                 {
                     hasCooling = true;
-                    if (Data[i - 1] == max && coolingStartIndex == -1)
+                    if (Data[i - 1] == max && LastMaxIndex == -1)
                     {
-                        coolingStartIndex = i;
+                        LastMaxIndex = i;
                     }
                 }
             }
 
             if (hasHeating && hasCooling)
             {
-                CoolingStartIndex = coolingStartIndex;
+                TransitionIndex = LastMaxIndex;
                 TemperatureType = TempType.Both;
             }
             else if (hasHeating)
@@ -227,7 +247,7 @@ namespace LasAnalyzer.Services.Graphics
             }
             else
             {
-                // если процесс нагрева или охлаждения не обнаружен
+                // Если процесс нагрева или охлаждения не обнаружен
                 TemperatureType = TempType.Both;
             }
         }

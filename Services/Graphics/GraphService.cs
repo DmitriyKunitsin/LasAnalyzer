@@ -90,7 +90,7 @@ namespace LasAnalyzer.Services.Graphics
 
             GraphTemperature = new TemperatureGraph(graphData.Temperature, "TEMPER", windowSize);
 
-            CoolingStartIndex = GraphTemperature.CoolingStartIndex;
+            CoolingStartIndex = GraphTemperature.TransitionIndex;
             TemperatureType = GraphTemperature.TemperatureType;
 
             var baseHeatIndex = GraphTemperature.BaseHeatIndex;
@@ -111,7 +111,7 @@ namespace LasAnalyzer.Services.Graphics
         {
             GraphTemperature.CropData();
 
-            CoolingStartIndex = GraphTemperature.CoolingStartIndex;
+            CoolingStartIndex = GraphTemperature.TransitionIndex;
             TemperatureType = GraphTemperature.TemperatureType;
 
             var baseHeatIndex = GraphTemperature.BaseHeatIndex;

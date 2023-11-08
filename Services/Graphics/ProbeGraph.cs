@@ -156,6 +156,7 @@ namespace LasAnalyzer.Services.Graphics
                 ZIndex = 1,
             };
 
+            // продумать
             HeatingExtremumPoints = FindExtremum(
                 data.Take(coolingStartIndex).ToList(),
                 TempType.Heating,
@@ -282,7 +283,7 @@ namespace LasAnalyzer.Services.Graphics
         // points for calc
         private ExtremumPoints FindExtremum(List<double?> data, TempType tempType, int baseIndex, int coolingStartIndex)
         {
-            if (baseIndex == -1)
+            if (baseIndex == -1 || coolingStartIndex == -1)
                 return new ExtremumPoints();
 
             ExtremumPoints ExtremumPoints = new ExtremumPoints();
