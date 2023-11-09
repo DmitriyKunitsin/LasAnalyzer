@@ -94,9 +94,9 @@ namespace LasAnalyzer.Services
         {
             var result = new Result();
 
-            result.NearProbe = nearProbeExtrema.BasePoint.Y.Value;
-            result.FarProbe = farProbeExtrema.BasePoint.Y.Value;
-            result.FarToNearProbeRatio = farToNearProbeExtrema.BasePoint.Y.Value;
+            result.NearProbe = Math.Round(nearProbeExtrema.BasePoint.Y.Value, 3);
+            result.FarProbe = Math.Round(farProbeExtrema.BasePoint.Y.Value, 3);
+            result.FarToNearProbeRatio = Math.Round(farToNearProbeExtrema.BasePoint.Y.Value, 3);
 
             return result;
         }
@@ -105,9 +105,9 @@ namespace LasAnalyzer.Services
         {
             var result = new Result();
 
-            result.NearProbe = nearProbeExtrema.MaxPoint.Y.Value;
-            result.FarProbe = farProbeExtrema.MaxPoint.Y.Value;
-            result.FarToNearProbeRatio = farToNearProbeExtrema.MaxPoint.Y.Value;
+            result.NearProbe = Math.Round(nearProbeExtrema.MaxPoint.Y.Value, 3);
+            result.FarProbe = Math.Round(farProbeExtrema.MaxPoint.Y.Value, 3);
+            result.FarToNearProbeRatio = Math.Round(farToNearProbeExtrema.MaxPoint.Y.Value, 3);
 
             return result;
         }
@@ -115,9 +115,9 @@ namespace LasAnalyzer.Services
         {
             var result = new Result();
 
-            result.NearProbe = nearProbeExtrema.MinPoint.Y.Value;
-            result.FarProbe = farProbeExtrema.MinPoint.Y.Value;
-            result.FarToNearProbeRatio = farToNearProbeExtrema.MinPoint.Y.Value;
+            result.NearProbe = Math.Round(nearProbeExtrema.MinPoint.Y.Value, 3);
+            result.FarProbe = Math.Round(farProbeExtrema.MinPoint.Y.Value, 3);
+            result.FarToNearProbeRatio = Math.Round(farToNearProbeExtrema.MinPoint.Y.Value, 3);
 
             return result;
         }
@@ -127,9 +127,9 @@ namespace LasAnalyzer.Services
         {
             var result = new Result();
 
-            result.NearProbe = Extrema.NearProbe - baseValues.NearProbe;
-            result.FarProbe = Extrema.FarProbe - baseValues.FarProbe;
-            result.FarToNearProbeRatio = Extrema.FarToNearProbeRatio - baseValues.FarToNearProbeRatio;
+            result.NearProbe = Math.Round(Extrema.NearProbe - baseValues.NearProbe, 3);
+            result.FarProbe = Math.Round(Extrema.FarProbe - baseValues.FarProbe, 3);
+            result.FarToNearProbeRatio = Math.Round(Extrema.FarToNearProbeRatio - baseValues.FarToNearProbeRatio, 3);
 
             return result;
         }
@@ -138,9 +138,9 @@ namespace LasAnalyzer.Services
         {
             var result = new Result();
 
-            result.NearProbe = differences.NearProbe / baseValues.NearProbe;
-            result.FarProbe = differences.FarProbe / baseValues.FarProbe;
-            result.FarToNearProbeRatio = differences.FarToNearProbeRatio / baseValues.FarToNearProbeRatio;
+            result.NearProbe = Math.Round((differences.NearProbe / baseValues.NearProbe) * 100, 2);
+            result.FarProbe = Math.Round((differences.FarProbe / baseValues.FarProbe) * 100, 2);
+            result.FarToNearProbeRatio = Math.Round((differences.FarToNearProbeRatio / baseValues.FarToNearProbeRatio) * 100, 2);
 
             return result;
         }

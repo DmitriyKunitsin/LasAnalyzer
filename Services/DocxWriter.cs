@@ -31,10 +31,10 @@ namespace LasAnalyzer.Services
                 document.InsertParagraph("температурных испытаний прибора").FontSize(12).Alignment = Alignment.center;
                 document.InsertParagraph();
 
-                document.InsertParagraph("1. Прибор №: " + report.SerialNumber).FontSize(12);
-                document.InsertParagraph("2. Канал: " + report.DeviceType).FontSize(12);
-                document.InsertParagraph("3. Дата: " + report.TestDate).FontSize(12);
-                document.InsertParagraph("4. Пороги: RSD – " + report.NearProbeThreshold + " мВ, RLD – " + report.FarProbeThreshold + " мВ").FontSize(12);
+                document.InsertParagraph("1. Прибор: \t\t№: " + report.SerialNumber).FontSize(12);
+                document.InsertParagraph("2. Канал: \t\t" + report.DeviceType).FontSize(12);
+                document.InsertParagraph("3. Дата испытаний: \t" + report.TestDate).FontSize(12);
+                document.InsertParagraph("4. Пороги: \t\tRSD – " + report.NearProbeThreshold + " мВ, RLD – " + report.FarProbeThreshold + " мВ").FontSize(12);
                 document.InsertParagraph();
 
                 document.InsertParagraph(report.NearProbeTitle).FontSize(12);
@@ -51,8 +51,10 @@ namespace LasAnalyzer.Services
                 InsertResultTables(document, report);
                 document.InsertParagraph();
 
-                document.InsertParagraph("10. Выводы");
-                document.InsertParagraph(report.Conclusion);
+                document.InsertParagraph("10. Выводы").FontSize(12);
+                document.InsertParagraph(report.Conclusion).FontSize(12);
+                document.InsertParagraph();
+                document.InsertParagraph("Термоиспытания провел:").FontSize(12);
 
                 document.Save();
             }
@@ -62,7 +64,6 @@ namespace LasAnalyzer.Services
         {
             var image = document.AddImage(new MemoryStream(imageBytes));
             Picture picture = image.CreatePicture();
-            // Задайте размер и позицию изображения по вашим требованиям
             picture.Width = 500;
             picture.Height = 200;
             document.InsertParagraph().AppendPicture(picture);
@@ -88,6 +89,12 @@ namespace LasAnalyzer.Services
                     table.Rows[i + 1].Cells[2].Paragraphs.First().InsertText(resultTable.Results[i].NearProbe.ToString());
                     table.Rows[i + 1].Cells[3].Paragraphs.First().InsertText(resultTable.Results[i].FarProbe.ToString());
                     table.Rows[i + 1].Cells[4].Paragraphs.First().InsertText(resultTable.Results[i].FarToNearProbeRatio.ToString());
+                    if (i >= 5)
+                    {
+                        table.Rows[i + 1].Cells[2].Paragraphs.First().Bold();
+                        table.Rows[i + 1].Cells[3].Paragraphs.First().Bold();
+                        table.Rows[i + 1].Cells[4].Paragraphs.First().Bold();
+                    }
                 }
                 document.InsertTable(table);
             }
@@ -110,9 +117,9 @@ namespace LasAnalyzer.Services
             table.Rows[6].Cells[1].Paragraphs.First().InsertText("% MAX");
             table.Rows[7].Cells[1].Paragraphs.First().InsertText("% MIN");
 
-            for (int i = 1; i < 7; i++)
+            for (int i = 0; i < 7; i++)
             {
-                table.Rows[i].Cells[0].Paragraphs.First().InsertText((i).ToString());
+                table.Rows[i + 1].Cells[0].Paragraphs.First().InsertText((i + 1).ToString());
             }
 
             return table;
