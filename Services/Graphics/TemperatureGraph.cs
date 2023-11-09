@@ -192,8 +192,7 @@ namespace LasAnalyzer.Services.Graphics
         {
             bool hasHeating = false;
             bool hasCooling = false;
-            int startIndex = -1;
-            int LastMaxIndex = -1;
+            int argMax = -1;
             double? max = Data.Max();
             double? threshold = 2;
 
@@ -202,39 +201,24 @@ namespace LasAnalyzer.Services.Graphics
                 // нахождение последнего максимума
                 // обработка дребезга (+-0,5)
                 // продумать для 3 случаев, только нагрев или охлад или оба
-                if (startIndex == -1)
-                {
-                    startIndex = i;
-                }
-                if (Data[i] == max && LastMaxIndex == -1)
-                {
-                    LastMaxIndex = i;
-                }
 
-                if (Data[i] - Data[i - 1])
+                if (Data[i] == max && argMax == -1)
                 {
-
+                    argMax = i;
                 }
-                
-                double? temperatureChange = Data[i] - Data[i - 1];
-
-                if (temperatureChange >= threshold && Data[i] == max)
-                {
-                    hasHeating = true;
-                }
-                else if (temperatureChange <= -threshold && Data[i - 1] == max)
+                if (argMax == -1 && max - Data[i] >= threshold)
                 {
                     hasCooling = true;
-                    if (Data[i - 1] == max && LastMaxIndex == -1)
-                    {
-                        LastMaxIndex = i;
-                    }
+                }
+                if (argMax != -1 && max - Data[i] >= threshold)
+                {
+                    hasHeating = true;
                 }
             }
 
             if (hasHeating && hasCooling)
             {
-                TransitionIndex = LastMaxIndex;
+                TransitionIndex = argMax;
                 TemperatureType = TempType.Both;
             }
             else if (hasHeating)

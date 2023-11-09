@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LasAnalyzer.Models
 {
-    enum DeviceType
+    public enum DeviceType
     {
         Gamma,
         Neutronic

@@ -10,7 +10,7 @@ namespace LasAnalyzer.Services
 {
     public class Calculator
     {
-        public ResultTable CalculateMetrics(GraphService graphService, TempType tempType)
+        public ResultTable CalculateMetrics(GraphService graphService, DeviceType deviceType, TempType tempType)
         {
             if (graphService is null) return null;
 
@@ -31,6 +31,7 @@ namespace LasAnalyzer.Services
                 farToNearProbeExtrema = graphService.GraphFarToNearProbeRatio.CoolingExtremumPoints;
             }
 
+            //todo: round 3 digits after dot, 2 digits for percent after dot
             var baseValues = GetBaseValues(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema);
 
             var maxExtrema = GetMaximums(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema);
@@ -68,10 +69,25 @@ namespace LasAnalyzer.Services
             {
                 Results = results,
                 TempType = tempType,
-                TemperBase = graphService.GraphTemperature.Data[baseIndex]
+                TemperBase = graphService.GraphTemperature.Data[baseIndex],
+                ThresholdExceeded = IsThresholdExceeded(results, deviceType)
             };
 
             return resultTable;
+        }
+
+        private bool IsThresholdExceeded(List<Result> results, DeviceType deviceType)
+        {
+            var threshold = deviceType == DeviceType.Gamma ? 5 : 6;
+            if (
+                Math.Abs(results[5].NearProbe) > threshold || Math.Abs(results[6].NearProbe) > threshold ||
+                Math.Abs(results[5].FarProbe) > threshold || Math.Abs(results[6].FarProbe) > threshold ||
+                Math.Abs(results[5].FarToNearProbeRatio) > threshold || Math.Abs(results[6].FarToNearProbeRatio) > threshold
+            )
+            {
+                return true;
+            }
+            return false;
         }
 
         private Result GetBaseValues(ExtremumPoints nearProbeExtrema, ExtremumPoints farProbeExtrema, ExtremumPoints farToNearProbeExtrema)

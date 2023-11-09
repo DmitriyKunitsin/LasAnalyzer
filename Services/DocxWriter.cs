@@ -17,6 +17,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView.VisualElements;
 using LasAnalyzer.Services.Graphics;
+using DynamicData;
 
 namespace LasAnalyzer.Services
 {
@@ -26,27 +27,28 @@ namespace LasAnalyzer.Services
         {
             using (DocX document = DocX.Create(outputPath))
             {
-                document.InsertParagraph("Протокол температурных испытаний прибора").Bold().FontSize(16).Alignment = Alignment.center;
+                document.InsertParagraph("Протокол").Bold().FontSize(16).Alignment = Alignment.center;
+                document.InsertParagraph("температурных испытаний прибора").FontSize(12).Alignment = Alignment.center;
                 document.InsertParagraph();
 
-                document.InsertParagraph("1. Прибор №: " + report.SerialNumber);
-                document.InsertParagraph("2. Канал: " + report.DeviceType);
-                document.InsertParagraph("3. Дата: " + report.TestDate);
-                document.InsertParagraph("4. Пороги: RSD – " + report.NearProbeThreshold + " мВ, RLD – " + report.FarProbeThreshold + " мВ");
+                document.InsertParagraph("1. Прибор №: " + report.SerialNumber).FontSize(12);
+                document.InsertParagraph("2. Канал: " + report.DeviceType).FontSize(12);
+                document.InsertParagraph("3. Дата: " + report.TestDate).FontSize(12);
+                document.InsertParagraph("4. Пороги: RSD – " + report.NearProbeThreshold + " мВ, RLD – " + report.FarProbeThreshold + " мВ").FontSize(12);
                 document.InsertParagraph();
 
-                //document.InsertParagraph(graph.Title).Bold();
-                //CreateChart(document, report.Graphs.NearProbe);
-                //CreateChart(document, report.Graphs.FarProbe);
-                //CreateChart(document, report.Graphs.FarToNearProbeRatio);
-                //CreateChart(document, report.Graphs.Temperature);
-                for (int i = 0; i < report.Graphs.Count; i++)
-                {
-                    InsertChartImageToDocX(document, report.Graphs[i]);
-                }
+                document.InsertParagraph(report.NearProbeTitle).FontSize(12);
+                InsertChartImageToDocX(document, report.Graphs[0]);
+                document.InsertParagraph(report.FarProbeTitle).FontSize(12);
+                InsertChartImageToDocX(document, report.Graphs[1]);
+                document.InsertParagraph($"{report.FarProbeTitle}/{report.NearProbeTitle}").FontSize(12);
+                InsertChartImageToDocX(document, report.Graphs[2]);
+                document.InsertParagraph("TEMPER").FontSize(12);
+                InsertChartImageToDocX(document, report.Graphs[3]);
+
                 document.InsertParagraph();
 
-                InsertResultTables(document, report.Results);
+                InsertResultTables(document, report);
                 document.InsertParagraph();
 
                 document.InsertParagraph("10. Выводы");
@@ -66,43 +68,51 @@ namespace LasAnalyzer.Services
             document.InsertParagraph().AppendPicture(picture);
         }
 
-        private void InsertResultTables(DocX document, List<ResultTable> tables)
+        private void InsertResultTables(DocX document, ReportModel report)
         {
-            foreach (var resultTable in tables)
+            foreach (var resultTable in report.Results)
             {
-                document.InsertParagraph("9. Результаты");
-                var table = document.AddTable(resultTable.Results.Count, 5);
+                var resultString = resultTable.TempType == TempType.Heating ? "при нагреве" : "при охлаждении";
+                document.InsertParagraph($"9. Результаты {resultString}").FontSize(12); ;
+
+                var table = document.AddTable(resultTable.Results.Count + 1, 5);
                 table.Design = TableDesign.TableGrid;
                 table.Alignment = Alignment.center;
 
-                table = setFormulas(table, resultTable.TemperBase);
+                table = setFormulasAndHeaders(table, resultTable.TemperBase, report);
 
                 for (int i = 0; i < resultTable.Results.Count; i++)
                 {
                     //table.Rows[i].Cells[0].Paragraphs.First().InsertText(resultTable.Results[i].Num.ToString());
                     //table.Rows[i].Cells[1].Paragraphs.First().InsertText(resultTable.Results[i].Formula);
-                    table.Rows[i].Cells[2].Paragraphs.First().InsertText(resultTable.Results[i].NearProbe.ToString());
-                    table.Rows[i].Cells[3].Paragraphs.First().InsertText(resultTable.Results[i].FarProbe.ToString());
-                    table.Rows[i].Cells[4].Paragraphs.First().InsertText(resultTable.Results[i].FarToNearProbeRatio.ToString());
+                    table.Rows[i + 1].Cells[2].Paragraphs.First().InsertText(resultTable.Results[i].NearProbe.ToString());
+                    table.Rows[i + 1].Cells[3].Paragraphs.First().InsertText(resultTable.Results[i].FarProbe.ToString());
+                    table.Rows[i + 1].Cells[4].Paragraphs.First().InsertText(resultTable.Results[i].FarToNearProbeRatio.ToString());
                 }
                 document.InsertTable(table);
             }
         }
 
-        private Table setFormulas(Table table, double? baseTemper)
+        private Table setFormulasAndHeaders(Table table, double? baseTemper, ReportModel report)
         {
             // suda lu4we ne smotret
-            table.Rows[0].Cells[1].Paragraphs.First().InsertText($"N(T={baseTemper.Value})");
-            table.Rows[1].Cells[1].Paragraphs.First().InsertText("MAX/T");
-            table.Rows[2].Cells[1].Paragraphs.First().InsertText("MIN/T");
-            table.Rows[3].Cells[1].Paragraphs.First().InsertText($"MAX - N(T={baseTemper.Value})");
-            table.Rows[4].Cells[1].Paragraphs.First().InsertText($"N(T={baseTemper.Value}) - MIN");
-            table.Rows[5].Cells[1].Paragraphs.First().InsertText("% MAX");
-            table.Rows[6].Cells[1].Paragraphs.First().InsertText("% MIN");
+            table.Rows[0].Cells[0].Paragraphs.First().InsertText($"п/п");
+            table.Rows[0].Cells[1].Paragraphs.First().InsertText($"Формула");
+            table.Rows[0].Cells[2].Paragraphs.First().InsertText(report.NearProbeTitle);
+            table.Rows[0].Cells[3].Paragraphs.First().InsertText(report.FarProbeTitle);
+            table.Rows[0].Cells[4].Paragraphs.First().InsertText($"{report.FarProbeTitle}/{report.NearProbeTitle}");
 
-            for (int i = 0; i < 7; i++)
+            table.Rows[1].Cells[1].Paragraphs.First().InsertText($"N(T={baseTemper.Value})");
+            table.Rows[2].Cells[1].Paragraphs.First().InsertText("MAX/T");
+            table.Rows[3].Cells[1].Paragraphs.First().InsertText("MIN/T");
+            table.Rows[4].Cells[1].Paragraphs.First().InsertText($"MAX - N(T={baseTemper.Value})");
+            table.Rows[5].Cells[1].Paragraphs.First().InsertText($"N(T={baseTemper.Value}) - MIN");
+            table.Rows[6].Cells[1].Paragraphs.First().InsertText("% MAX");
+            table.Rows[7].Cells[1].Paragraphs.First().InsertText("% MIN");
+
+            for (int i = 1; i < 7; i++)
             {
-                table.Rows[i].Cells[0].Paragraphs.First().InsertText((i + 1).ToString());
+                table.Rows[i].Cells[0].Paragraphs.First().InsertText((i).ToString());
             }
 
             return table;
@@ -121,24 +131,33 @@ namespace LasAnalyzer.Services
                 // todo: create and fill reportModel in MainWindowViewModel
                 SaveReport(
                     graphServiceGamma,
+                    DeviceType.Gamma,
                     isHeatingSelected,
-                    isCoolingSelected
+                    isCoolingSelected,
+                    "RSD",
+                    "RLD"
                 );
             }
             if (graphServiceNeutronic.GraphNearProbe.Data is not null)
             {
                 SaveReport(
                     graphServiceNeutronic,
+                    DeviceType.Neutronic,
                     isHeatingSelected,
-                    isCoolingSelected
+                    isCoolingSelected,
+                    "NTNC",
+                    "FTNC"
                 );
             }
         }
 
         private void SaveReport(
             GraphService graphService,
+            DeviceType deviceType,
             bool isHeatingSelected,
-            bool isCoolingSelected
+            bool isCoolingSelected,
+            string nearProbeTitle,
+            string farProbeTitle
         )
         {
             List<byte[]> chartImageDatas = new List<byte[]>()
@@ -149,6 +168,40 @@ namespace LasAnalyzer.Services
                     createChartImage(graphService.GraphTemperature.Data, graphService.GraphTemperature.Title)
                 };
 
+            var results = CalculatorWrapper(
+                graphService,
+                deviceType,
+                isHeatingSelected,
+                isCoolingSelected
+            );
+
+            bool isHeating = false;
+            bool isCooling = false;
+            int minLeft = 0;
+            int minRight = 0;
+            foreach (var item in results)
+            {
+                if (item.TempType == TempType.Heating)
+                {
+                    isHeating = true;
+                    minLeft = Convert.ToInt32(item.TemperBase);
+                }
+                if (item.TempType == TempType.Cooling)
+                {
+                    isCooling = true;
+                    minRight = Convert.ToInt32(item.TemperBase);
+                }
+            }
+            var max = graphService.GraphTemperature.Data.Max();
+            var heatRange = isHeating ? $"от {minLeft} до {max} градусов" : "";
+            var coolRange = isCooling ? $"от {max} до {minRight} градусов" : "";
+            var Kek = isHeating && isCooling ? "и " : "";
+
+            var tempRange = $"{heatRange} {Kek}{coolRange}";
+
+            var conditionForConclusion = results[0].ThresholdExceeded || results[1].ThresholdExceeded ? "превышает" : "не превышает";
+            var departureThreshold = deviceType == DeviceType.Gamma ? 5 : 6;
+
             ReportModel ReportModel = new ReportModel()
             {
                 SerialNumber = "12312312",
@@ -156,19 +209,18 @@ namespace LasAnalyzer.Services
                 TestDate = "11.22.33",
                 NearProbeThreshold = 0,
                 FarProbeThreshold = 0,
+                NearProbeTitle = nearProbeTitle,
+                FarProbeTitle = farProbeTitle,
                 Graphs = chartImageDatas,
-                Results = CalculatorWrapper(
-                    graphService,
-                    isHeatingSelected,
-                    isCoolingSelected
-                ),
-                Conclusion = "> < 5 %"
+                Results = results,
+                Conclusion = $"Температурный уход сигналов {nearProbeTitle}, {farProbeTitle} и {farProbeTitle}/{nearProbeTitle} в диапазоне температур {tempRange} {conditionForConclusion} {departureThreshold}%."
             };
-            CreateReport(ReportModel, Directory.GetCurrentDirectory() + "\\out.docx");
+            CreateReport(ReportModel, Directory.GetCurrentDirectory() + $"\\{ReportModel.SerialNumber}_{ReportModel.DeviceType}_{ReportModel.TestDate}.docx");
         }
 
         private List<ResultTable> CalculatorWrapper(
             GraphService graphService,
+            DeviceType deviceType,
             bool isHeatingSelected,
             bool isCoolingSelected
         )
@@ -177,10 +229,10 @@ namespace LasAnalyzer.Services
             var tableList = new List<ResultTable>();
 
             if ((graphService.TemperatureType == TempType.Heating || graphService.TemperatureType == TempType.Both) && isHeatingSelected)
-                tableList.Add(calculator.CalculateMetrics(graphService, TempType.Heating));
+                tableList.Add(calculator.CalculateMetrics(graphService, deviceType, TempType.Heating));
 
             if ((graphService.TemperatureType == TempType.Cooling || graphService.TemperatureType == TempType.Both) && isCoolingSelected)
-                tableList.Add(calculator.CalculateMetrics(graphService, TempType.Cooling));
+                tableList.Add(calculator.CalculateMetrics(graphService, deviceType, TempType.Cooling));
 
             return tableList;
         }

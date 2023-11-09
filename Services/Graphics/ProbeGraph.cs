@@ -125,6 +125,9 @@ namespace LasAnalyzer.Services.Graphics
                 }
             };
 
+            HeatingExtremumPoints = new ExtremumPoints();
+            CoolingExtremumPoints = new ExtremumPoints();
+
             SetProbeSeriesData(data, coolingStartIndex, baseHeatIndex, baseCoolIndex);
 
             PointerDownCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerDown);
@@ -132,7 +135,7 @@ namespace LasAnalyzer.Services.Graphics
             PointerUpCommand = ReactiveCommand.Create<PointerCommandArgs>(PointerUp);
         }
 
-        private void SetProbeSeriesData(List<double?> data, int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
+        private void SetProbeSeriesData(List<double?> data, int transitionIndex, int baseHeatIndex, int baseCoolIndex)
         {
             Thumbs[0].Xi = 0;
             Thumbs[0].Xj = 0;
@@ -158,16 +161,16 @@ namespace LasAnalyzer.Services.Graphics
 
             // продумать
             HeatingExtremumPoints = FindExtremum(
-                data.Take(coolingStartIndex).ToList(),
+                transitionIndex == -1 ? data : data.Take(transitionIndex).ToList(),
                 TempType.Heating,
                 baseHeatIndex,
-                coolingStartIndex
+                transitionIndex
             );
             CoolingExtremumPoints = FindExtremum(
-                data.Skip(coolingStartIndex).ToList(),
+                transitionIndex == -1 ? data : data.Skip(transitionIndex).ToList(),
                 TempType.Cooling,
-                baseCoolIndex - coolingStartIndex,
-                coolingStartIndex
+                transitionIndex == -1 ? baseCoolIndex : baseCoolIndex - transitionIndex,
+                transitionIndex
             );
             // todo: use 6 sckatter series with 1 ObservablePoint
             // мб использовать пункирную линию для отрисовки минимума
@@ -283,7 +286,7 @@ namespace LasAnalyzer.Services.Graphics
         // points for calc
         private ExtremumPoints FindExtremum(List<double?> data, TempType tempType, int baseIndex, int coolingStartIndex)
         {
-            if (baseIndex == -1 || coolingStartIndex == -1)
+            if (baseIndex == -1)
                 return new ExtremumPoints();
 
             ExtremumPoints ExtremumPoints = new ExtremumPoints();
@@ -293,11 +296,11 @@ namespace LasAnalyzer.Services.Graphics
             ExtremumPoints.MinPoint = FindMinExtremum(data, ExtremumPoints.BasePoint);
 
             // todo: fix this shit
-            if (tempType == TempType.Cooling)
+            if (tempType == TempType.Cooling && coolingStartIndex != -1)
             {
-                ExtremumPoints.BasePoint.X = ExtremumPoints.BasePoint.X.Value + coolingStartIndex;
-                ExtremumPoints.MaxPoint.X = ExtremumPoints.MaxPoint.X.Value + coolingStartIndex;
-                ExtremumPoints.MinPoint.X = ExtremumPoints.MinPoint.X.Value + coolingStartIndex;
+                ExtremumPoints.BasePoint.X += coolingStartIndex;
+                ExtremumPoints.MaxPoint.X += coolingStartIndex;
+                ExtremumPoints.MinPoint.X += coolingStartIndex;
             }
 
             return ExtremumPoints;
