@@ -34,8 +34,8 @@ namespace LasAnalyzer.Services
             //todo: round 3 digits after dot, 2 digits for percent after dot
             var baseValues = GetBaseValues(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema);
 
-            var maxExtrema = GetMaximums(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema);
-            var minExtrema = GetMinimums(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema);
+            var maxExtrema = GetMaximums(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema, graphService.GraphTemperature.Data);
+            var minExtrema = GetMinimums(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema, graphService.GraphTemperature.Data);
 
             var maxDif = GetDifferences(baseValues, maxExtrema);
             var minDif = GetDifferences(baseValues, minExtrema);
@@ -101,23 +101,33 @@ namespace LasAnalyzer.Services
             return result;
         }
 
-        private Result GetMaximums(ExtremumPoints nearProbeExtrema, ExtremumPoints farProbeExtrema, ExtremumPoints farToNearProbeExtrema)
+        private Result GetMaximums(ExtremumPoints nearProbeExtrema, ExtremumPoints farProbeExtrema, ExtremumPoints farToNearProbeExtrema, List<double?> tempData)
         {
             var result = new Result();
+            result.Temperatures = new Temperatures();
 
             result.NearProbe = Math.Round(nearProbeExtrema.MaxPoint.Y.Value, 3);
             result.FarProbe = Math.Round(farProbeExtrema.MaxPoint.Y.Value, 3);
             result.FarToNearProbeRatio = Math.Round(farToNearProbeExtrema.MaxPoint.Y.Value, 3);
 
+            result.Temperatures.NearProbe = tempData[Convert.ToInt32(nearProbeExtrema.MaxPoint.X)].Value;
+            result.Temperatures.FarProbe = tempData[Convert.ToInt32(farProbeExtrema.MaxPoint.X)].Value;
+            result.Temperatures.FarToNearProbeRatio = tempData[Convert.ToInt32(farToNearProbeExtrema.MaxPoint.X)].Value;
+
             return result;
         }
-        private Result GetMinimums(ExtremumPoints nearProbeExtrema, ExtremumPoints farProbeExtrema, ExtremumPoints farToNearProbeExtrema)
+        private Result GetMinimums(ExtremumPoints nearProbeExtrema, ExtremumPoints farProbeExtrema, ExtremumPoints farToNearProbeExtrema, List<double?> tempData)
         {
             var result = new Result();
+            result.Temperatures = new Temperatures();
 
             result.NearProbe = Math.Round(nearProbeExtrema.MinPoint.Y.Value, 3);
             result.FarProbe = Math.Round(farProbeExtrema.MinPoint.Y.Value, 3);
             result.FarToNearProbeRatio = Math.Round(farToNearProbeExtrema.MinPoint.Y.Value, 3);
+
+            result.Temperatures.NearProbe = tempData[Convert.ToInt32(nearProbeExtrema.MinPoint.X)].Value;
+            result.Temperatures.FarProbe = tempData[Convert.ToInt32(farProbeExtrema.MinPoint.X)].Value;
+            result.Temperatures.FarToNearProbeRatio = tempData[Convert.ToInt32(farToNearProbeExtrema.MinPoint.X)].Value;
 
             return result;
         }

@@ -35,7 +35,6 @@ namespace LasAnalyzer.Services
                 document.InsertParagraph("2. Канал: \t\t" + report.DeviceType).FontSize(12);
                 document.InsertParagraph("3. Дата испытаний: \t" + report.TestDate).FontSize(12);
                 document.InsertParagraph("4. Пороги: \t\tRSD – " + report.NearProbeThreshold + " мВ, RLD – " + report.FarProbeThreshold + " мВ").FontSize(12);
-                document.InsertParagraph();
 
                 document.InsertParagraph(report.NearProbeTitle).FontSize(12);
                 InsertChartImageToDocX(document, report.Graphs[0]);
@@ -43,6 +42,7 @@ namespace LasAnalyzer.Services
                 InsertChartImageToDocX(document, report.Graphs[1]);
                 document.InsertParagraph($"{report.FarProbeTitle}/{report.NearProbeTitle}").FontSize(12);
                 InsertChartImageToDocX(document, report.Graphs[2]);
+                document.InsertParagraph();
                 document.InsertParagraph("TEMPER").FontSize(12);
                 InsertChartImageToDocX(document, report.Graphs[3]);
 
@@ -65,7 +65,7 @@ namespace LasAnalyzer.Services
             var image = document.AddImage(new MemoryStream(imageBytes));
             Picture picture = image.CreatePicture();
             picture.Width = 500;
-            picture.Height = 200;
+            picture.Height = 175;
             document.InsertParagraph().AppendPicture(picture);
         }
 
@@ -84,11 +84,22 @@ namespace LasAnalyzer.Services
 
                 for (int i = 0; i < resultTable.Results.Count; i++)
                 {
-                    //table.Rows[i].Cells[0].Paragraphs.First().InsertText(resultTable.Results[i].Num.ToString());
-                    //table.Rows[i].Cells[1].Paragraphs.First().InsertText(resultTable.Results[i].Formula);
-                    table.Rows[i + 1].Cells[2].Paragraphs.First().InsertText(resultTable.Results[i].NearProbe.ToString());
-                    table.Rows[i + 1].Cells[3].Paragraphs.First().InsertText(resultTable.Results[i].FarProbe.ToString());
-                    table.Rows[i + 1].Cells[4].Paragraphs.First().InsertText(resultTable.Results[i].FarToNearProbeRatio.ToString());
+                    if (i == 1 || i == 2)
+                    {
+                        table.Rows[i + 1].Cells[2].Paragraphs.First()
+                            .InsertText($"{resultTable.Results[i].NearProbe} ({resultTable.Results[i].Temperatures.NearProbe})");
+                        table.Rows[i + 1].Cells[3].Paragraphs.First()
+                            .InsertText($"{resultTable.Results[i].FarProbe} ({resultTable.Results[i].Temperatures.FarProbe})");
+                        table.Rows[i + 1].Cells[4].Paragraphs.First()
+                            .InsertText($"{resultTable.Results[i].FarToNearProbeRatio} ({resultTable.Results[i].Temperatures.FarToNearProbeRatio})");
+                    }
+                    else
+                    {
+                        table.Rows[i + 1].Cells[2].Paragraphs.First().InsertText(resultTable.Results[i].NearProbe.ToString());
+                        table.Rows[i + 1].Cells[3].Paragraphs.First().InsertText(resultTable.Results[i].FarProbe.ToString());
+                        table.Rows[i + 1].Cells[4].Paragraphs.First().InsertText(resultTable.Results[i].FarToNearProbeRatio.ToString());
+                    }
+
                     if (i >= 5)
                     {
                         table.Rows[i + 1].Cells[2].Paragraphs.First().Bold();
@@ -205,7 +216,7 @@ namespace LasAnalyzer.Services
             var Kek = isHeating && isCooling ? "и " : "";
 
             var tempRange = $"{heatRange} {Kek}{coolRange}";
-
+            // todo: если только 1 таблица то выйдет из массива
             var conditionForConclusion = results[0].ThresholdExceeded || results[1].ThresholdExceeded ? "превышает" : "не превышает";
             var departureThreshold = deviceType == DeviceType.Gamma ? 5 : 6;
 
@@ -249,10 +260,24 @@ namespace LasAnalyzer.Services
             var cartesianChart = new SKCartesianChart
             {
                 Width = 1000,
-                Height = 400,
+                Height = 350,
                 Series = new ISeries[]
                 {
-                    new LineSeries<double?> { Values = data },
+                    new LineSeries<double?>
+                    {
+                        Values = data,
+                        GeometryStroke = null,
+                        GeometryFill = null,
+                        Fill = null,
+                        Stroke = new SolidColorPaint
+                        {
+                            Color = SKColors.RoyalBlue,
+                            StrokeThickness = 3,
+                            ZIndex = 1
+                        },
+                        LineSmoothness = 0,
+                        ZIndex = 1,
+                    }
                 },
                 Title = new LabelVisual
                 {
@@ -260,6 +285,14 @@ namespace LasAnalyzer.Services
                     TextSize = 30,
                     Padding = new Padding(15),
                     Paint = new SolidColorPaint(0xff303030)
+                },
+                YAxes = new[]
+                {
+                    new LiveChartsCore.SkiaSharpView.Axis
+                    {
+                        //MaxLimit = LasDataForGamma.NearProbe.Max() * 1.1,
+                        //MinLimit = LasDataForGamma.NearProbe.Min() * 0.9
+                    }
                 },
                 LegendPosition = LiveChartsCore.Measure.LegendPosition.Right,
                 Background = SKColors.White

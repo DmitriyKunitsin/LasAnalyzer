@@ -254,7 +254,10 @@ namespace LasAnalyzer.ViewModels
 
             LasData = lasData;
 
+            // todo: сделать 1 функцию которая возвращает GraphService
+            //if (HasGamma(LasData))
             SetGammaData();
+            //if (HasNeutonic(LasData))
             SetNeutronicData();
         }
 
@@ -272,13 +275,19 @@ namespace LasAnalyzer.ViewModels
             var smoothedFarProbeData = DataProcessor.SmoothDataWithCount(LasData.Data["RLD"].ToList(), WindowSize, SmoothingIterations);
             var smoothedFarToNearRatio = DataProcessor.DivideArrays(smoothedFarProbeData, smoothedNearProbeData);
 
+            var tempKey = "MT";
+            if (!LasData.Data.ContainsKey("MT") && LasData.Data.ContainsKey("T_GGKP"))
+            {
+                tempKey = "T_GGKP";
+            }
+
             var graphData = new GraphData
             {
                 NearProbe = smoothedNearProbeData,
                 FarProbe = smoothedFarProbeData,
                 FarToNearProbeRatio = smoothedFarToNearRatio,
-                Temperature = LasData.Data["MT"].ToList(),
-                Time = LasData.Data["TIME"].ToList()
+                Temperature = LasData.Data[tempKey].Skip(LasData.Data[tempKey].Length - smoothedNearProbeData.Count).ToList(),
+                Time = LasData.Data["TIME"].Skip(LasData.Data[tempKey].Length - smoothedNearProbeData.Count).ToList()
             };
 
             GraphServiceGamma = new GraphService(graphData, ("RSD", "RLD"), WindowSize);
@@ -296,13 +305,19 @@ namespace LasAnalyzer.ViewModels
             var smoothedFarProbeData = DataProcessor.SmoothDataWithCount(LasData.Data["FTNC"].ToList(), WindowSize, SmoothingIterations);
             var smoothedFarToNearRatio = DataProcessor.DivideArrays(smoothedFarProbeData, smoothedNearProbeData);
 
+            var tempKey = "MT";
+            if (!LasData.Data.ContainsKey("MT") && LasData.Data.ContainsKey("T_GGKP"))
+            {
+                tempKey = "T_GGKP";
+            }
+
             var graphData = new GraphData
             {
                 NearProbe = smoothedNearProbeData,
                 FarProbe = smoothedFarProbeData,
                 FarToNearProbeRatio = smoothedFarToNearRatio,
-                Temperature = LasData.Data["MT"].ToList(),
-                Time = LasData.Data["TIME"].ToList()
+                Temperature = LasData.Data[tempKey].Skip(LasData.Data[tempKey].Length - smoothedNearProbeData.Count).ToList(),
+                Time = LasData.Data["TIME"].Skip(LasData.Data[tempKey].Length - smoothedNearProbeData.Count).ToList()
             };
 
             GraphServiceNeutronic = new GraphService(graphData, ("NTNC", "FTNC"), WindowSize);
