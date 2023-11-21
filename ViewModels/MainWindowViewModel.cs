@@ -222,12 +222,19 @@ namespace LasAnalyzer.ViewModels
         
         private void CreateAndSaveReport()
         {
-            _docxWriter.CreateAndSaveReport(
+            ReportWrapper ReportWrapper = new ReportWrapper();
+            var Reports = ReportWrapper.CreateAndSaveReports(
+                LasData,
                 GraphServiceGamma,
                 GraphServiceNeutronic,
                 IsHeatingSelected,
                 IsCoolingSelected
             );
+
+            foreach (var report in Reports)
+            {
+                _docxWriter.CreateReport(report, $"{Directory.GetCurrentDirectory()}\\{report.SerialNumber}_{report.DeviceType}_{report.TestDate}.docx");
+            }
         }
 
         private void OpenGraphWindow()

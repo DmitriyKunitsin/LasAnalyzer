@@ -31,7 +31,6 @@ namespace LasAnalyzer.Services
                 farToNearProbeExtrema = graphService.GraphFarToNearProbeRatio.CoolingExtremumPoints;
             }
 
-            //todo: round 3 digits after dot, 2 digits for percent after dot
             var baseValues = GetBaseValues(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema);
 
             var maxExtrema = GetMaximums(nearProbeExtrema, farProbeExtrema, farToNearProbeExtrema, graphService.GraphTemperature.Data);

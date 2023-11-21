@@ -23,7 +23,7 @@ namespace LasAnalyzer.Services
 {
     public class DocxWriter
     {
-        private void CreateReport(ReportModel report, string outputPath)
+        public void CreateReport(ReportModel report, string outputPath)
         {
             using (DocX document = DocX.Create(outputPath))
             {
@@ -80,7 +80,7 @@ namespace LasAnalyzer.Services
                 table.Design = TableDesign.TableGrid;
                 table.Alignment = Alignment.center;
 
-                table = setFormulasAndHeaders(table, resultTable.TemperBase, report);
+                table = SetFormulasAndHeaders(table, resultTable.TemperBase, report);
 
                 for (int i = 0; i < resultTable.Results.Count; i++)
                 {
@@ -111,7 +111,7 @@ namespace LasAnalyzer.Services
             }
         }
 
-        private Table setFormulasAndHeaders(Table table, double? baseTemper, ReportModel report)
+        private Table SetFormulasAndHeaders(Table table, double? baseTemper, ReportModel report)
         {
             // suda lu4we ne smotret
             table.Rows[0].Cells[0].Paragraphs.First().InsertText($"п/п");
@@ -136,171 +136,6 @@ namespace LasAnalyzer.Services
             return table;
         }
 
-        public void CreateAndSaveReport(
-            GraphService graphServiceGamma,
-            GraphService graphServiceNeutronic,
-            bool isHeatingSelected,
-            bool isCoolingSelected
-        )
-        {
-            // todo: another condition for save report, mb use property IsDataSetted in GraphService
-            if (graphServiceGamma.GraphNearProbe.Data is not null)
-            {
-                // todo: create and fill reportModel in MainWindowViewModel
-                SaveReport(
-                    graphServiceGamma,
-                    DeviceType.Gamma,
-                    isHeatingSelected,
-                    isCoolingSelected,
-                    "RSD",
-                    "RLD"
-                );
-            }
-            if (graphServiceNeutronic.GraphNearProbe.Data is not null)
-            {
-                SaveReport(
-                    graphServiceNeutronic,
-                    DeviceType.Neutronic,
-                    isHeatingSelected,
-                    isCoolingSelected,
-                    "NTNC",
-                    "FTNC"
-                );
-            }
-        }
-
-        private void SaveReport(
-            GraphService graphService,
-            DeviceType deviceType,
-            bool isHeatingSelected,
-            bool isCoolingSelected,
-            string nearProbeTitle,
-            string farProbeTitle
-        )
-        {
-            List<byte[]> chartImageDatas = new List<byte[]>()
-                {
-                    createChartImage(graphService.GraphNearProbe.Data, graphService.GraphNearProbe.Title),
-                    createChartImage(graphService.GraphFarProbe.Data, graphService.GraphFarProbe.Title),
-                    createChartImage(graphService.GraphFarToNearProbeRatio.Data, graphService.GraphFarToNearProbeRatio.Title),
-                    createChartImage(graphService.GraphTemperature.Data, graphService.GraphTemperature.Title)
-                };
-
-            var results = CalculatorWrapper(
-                graphService,
-                deviceType,
-                isHeatingSelected,
-                isCoolingSelected
-            );
-
-            bool isHeating = false;
-            bool isCooling = false;
-            int minLeft = 0;
-            int minRight = 0;
-            foreach (var item in results)
-            {
-                if (item.TempType == TempType.Heating)
-                {
-                    isHeating = true;
-                    minLeft = Convert.ToInt32(item.TemperBase);
-                }
-                if (item.TempType == TempType.Cooling)
-                {
-                    isCooling = true;
-                    minRight = Convert.ToInt32(item.TemperBase);
-                }
-            }
-            var max = graphService.GraphTemperature.Data.Max();
-            var heatRange = isHeating ? $"от {minLeft} до {max} градусов" : "";
-            var coolRange = isCooling ? $"от {max} до {minRight} градусов" : "";
-            var Kek = isHeating && isCooling ? "и " : "";
-
-            var tempRange = $"{heatRange} {Kek}{coolRange}";
-            // todo: если только 1 таблица то выйдет из массива
-            var conditionForConclusion = results[0].ThresholdExceeded || results[1].ThresholdExceeded ? "превышает" : "не превышает";
-            var departureThreshold = deviceType == DeviceType.Gamma ? 5 : 6;
-
-            ReportModel ReportModel = new ReportModel()
-            {
-                SerialNumber = "12312312",
-                DeviceType = "gg nn",
-                TestDate = "11.22.33",
-                NearProbeThreshold = 0,
-                FarProbeThreshold = 0,
-                NearProbeTitle = nearProbeTitle,
-                FarProbeTitle = farProbeTitle,
-                Graphs = chartImageDatas,
-                Results = results,
-                Conclusion = $"Температурный уход сигналов {nearProbeTitle}, {farProbeTitle} и {farProbeTitle}/{nearProbeTitle} в диапазоне температур {tempRange} {conditionForConclusion} {departureThreshold}%."
-            };
-            CreateReport(ReportModel, Directory.GetCurrentDirectory() + $"\\{ReportModel.SerialNumber}_{ReportModel.DeviceType}_{ReportModel.TestDate}.docx");
-        }
-
-        private List<ResultTable> CalculatorWrapper(
-            GraphService graphService,
-            DeviceType deviceType,
-            bool isHeatingSelected,
-            bool isCoolingSelected
-        )
-        {
-            var calculator = new Calculator();
-            var tableList = new List<ResultTable>();
-
-            if ((graphService.TemperatureType == TempType.Heating || graphService.TemperatureType == TempType.Both) && isHeatingSelected)
-                tableList.Add(calculator.CalculateMetrics(graphService, deviceType, TempType.Heating));
-
-            if ((graphService.TemperatureType == TempType.Cooling || graphService.TemperatureType == TempType.Both) && isCoolingSelected)
-                tableList.Add(calculator.CalculateMetrics(graphService, deviceType, TempType.Cooling));
-
-            return tableList;
-        }
-
-        private byte[] createChartImage(List<double?> data, string title)
-        {
-            var cartesianChart = new SKCartesianChart
-            {
-                Width = 1000,
-                Height = 350,
-                Series = new ISeries[]
-                {
-                    new LineSeries<double?>
-                    {
-                        Values = data,
-                        GeometryStroke = null,
-                        GeometryFill = null,
-                        Fill = null,
-                        Stroke = new SolidColorPaint
-                        {
-                            Color = SKColors.RoyalBlue,
-                            StrokeThickness = 3,
-                            ZIndex = 1
-                        },
-                        LineSmoothness = 0,
-                        ZIndex = 1,
-                    }
-                },
-                Title = new LabelVisual
-                {
-                    Text = title,
-                    TextSize = 30,
-                    Padding = new Padding(15),
-                    Paint = new SolidColorPaint(0xff303030)
-                },
-                YAxes = new[]
-                {
-                    new LiveChartsCore.SkiaSharpView.Axis
-                    {
-                        //MaxLimit = LasDataForGamma.NearProbe.Max() * 1.1,
-                        //MinLimit = LasDataForGamma.NearProbe.Min() * 0.9
-                    }
-                },
-                LegendPosition = LiveChartsCore.Measure.LegendPosition.Right,
-                Background = SKColors.White
-            };
-
-            return cartesianChart.GetImage().Encode().ToArray();
-        }
-
         private void CreateChart(DocX document, List<double> graphData)
         {
             // Create a line chart.
@@ -314,7 +149,6 @@ namespace LasAnalyzer.Services
 
             // Insert chart into document
             document.InsertChart(lineChart);
-            
         }
     }
 }
