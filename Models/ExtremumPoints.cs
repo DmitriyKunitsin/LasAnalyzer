@@ -1,4 +1,5 @@
 ﻿using LiveChartsCore.Defaults;
+using LiveChartsCore.SkiaSharpView;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +13,9 @@ namespace LasAnalyzer.Models
         public ObservablePoint BasePoint { get; set; }
         public ObservablePoint MaxPoint { get; set; }
         public ObservablePoint MinPoint { get; set; }
+
+        public ScatterSeries<ObservablePoint> ScatterBasePoint { get; set; }
+        public ScatterSeries<ObservablePoint> ScatterMaxPoint { get; set; }
+        public ScatterSeries<ObservablePoint> ScatterMinPoint { get; set; }
     }
 }

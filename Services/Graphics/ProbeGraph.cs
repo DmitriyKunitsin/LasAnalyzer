@@ -36,7 +36,9 @@ namespace LasAnalyzer.Services.Graphics
 
         // Points
         public ExtremumPoints HeatingExtremumPoints { get; set; }
+        public ExtremumPoints HeatingScatterPoints { get; set; }
         public ExtremumPoints CoolingExtremumPoints { get; set; }
+        public ExtremumPoints CoolingScatterPoints { get; set; }
 
         public RectangularSection[] Thumbs { get; set; }
 
@@ -176,32 +178,74 @@ namespace LasAnalyzer.Services.Graphics
             // мб использовать пункирную линию для отрисовки минимума
             // использовать более темные цвета для отрисовки базовой точки
             // mb use VisualElement instead ScatterSeries?
-            ScatterSeries = new ScatterSeries<ObservablePoint>
+
+            ProbeSeries = new ISeries[]
+            {
+                LineSeries,
+                HeatingExtremumPoints.ScatterBasePoint,
+                CoolingExtremumPoints.ScatterBasePoint,
+
+                HeatingExtremumPoints.ScatterMaxPoint,
+                HeatingExtremumPoints.ScatterMinPoint,
+
+                CoolingExtremumPoints.ScatterMaxPoint,
+                CoolingExtremumPoints.ScatterMinPoint,
+            };
+        }
+
+        private ExtremumPoints SetScatterSeries(ExtremumPoints extremumPoints, TempType tempType)
+        {
+            SKColor FillSKColor = tempType == TempType.Heating ? new SKColor(229, 57, 53, 100) : new SKColor(53, 57, 229, 100);
+
+            extremumPoints.ScatterBasePoint = new ScatterSeries<ObservablePoint>
             {
                 Values = new ObservableCollection<ObservablePoint>
                 {
-                    HeatingExtremumPoints.BasePoint,
-                    CoolingExtremumPoints.BasePoint,
-                    HeatingExtremumPoints.MaxPoint,
-                    HeatingExtremumPoints.MinPoint,
-                    CoolingExtremumPoints.MaxPoint,
-                    CoolingExtremumPoints.MinPoint,
+                    extremumPoints.BasePoint,
                 },
-                Fill = new SolidColorPaint(new SKColor(229, 57, 53, 100)),
+                Fill = new SolidColorPaint(FillSKColor),
                 Stroke = new SolidColorPaint
                 {
-                    Color = SKColors.Red,
+                    Color = tempType == TempType.Heating ? SKColors.DarkRed : SKColors.DarkBlue,
                     StrokeThickness = 3,
                     ZIndex = 1
                 },
                 GeometrySize = 10,
             };
 
-            ProbeSeries = new ISeries[]
+            extremumPoints.ScatterMaxPoint = new ScatterSeries<ObservablePoint>
             {
-                LineSeries,
-                ScatterSeries
+                Values = new ObservableCollection<ObservablePoint>
+                {
+                    extremumPoints.MaxPoint,
+                },
+                Fill = new SolidColorPaint(FillSKColor),
+                Stroke = new SolidColorPaint
+                {
+                    Color = tempType == TempType.Heating ? SKColors.Red : SKColors.Blue,
+                    StrokeThickness = 3,
+                    ZIndex = 1
+                },
+                GeometrySize = 10,
             };
+
+            extremumPoints.ScatterMinPoint = new ScatterSeries<ObservablePoint>
+            {
+                Values = new ObservableCollection<ObservablePoint>
+                {
+                    extremumPoints.MinPoint,
+                },
+                Fill = new SolidColorPaint(FillSKColor),
+                Stroke = new SolidColorPaint
+                {
+                    Color = tempType == TempType.Heating ? new SKColor(255, 57, 53, 180) : new SKColor(53, 57, 255, 180),
+                    StrokeThickness = 3,
+                    ZIndex = 1
+                },
+                GeometrySize = 10,
+            };
+
+            return extremumPoints;
         }
 
         private double GetDistanceToPointer(ObservablePoint point, LvcPointD lastPointerPosition)
@@ -302,6 +346,8 @@ namespace LasAnalyzer.Services.Graphics
                 ExtremumPoints.MaxPoint.X += coolingStartIndex;
                 ExtremumPoints.MinPoint.X += coolingStartIndex;
             }
+
+            ExtremumPoints = SetScatterSeries(ExtremumPoints, tempType);
 
             return ExtremumPoints;
         }

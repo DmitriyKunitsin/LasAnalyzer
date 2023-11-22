@@ -14,6 +14,7 @@ using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView.Drawing;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Defaults;
+using LiveChartsCore;
 
 namespace LasAnalyzer.Services.Graphics
 {
@@ -149,9 +150,9 @@ namespace LasAnalyzer.Services.Graphics
                 if (chart.Series.Count() > 1)
                 {
                     // todo: spread to another methods
-                    NearlyExtrema = ((ScatterSeries<ObservablePoint>)chart.Series.ToList()[1]).Values.Skip(2)
-                        .Where(point => point != null)
-                        .OrderBy(point => GetDistanceToPointer(point, lastPointerPosition)).First();
+                    NearlyExtrema = ((ScatterSeries<ObservablePoint>[])chart.Series.Skip(3)).ToList()
+                        .Where(scatterPoint => scatterPoint?.Values?.Count() != 0)
+                        .OrderBy(scatterPoint => GetDistanceToPointer(scatterPoint.Values.First(), lastPointerPosition)).First();
 
                     var idx = ((LineSeries<double?>)chart.Series.ToList()[0]).Values.Count() - 1;
                     idx = Convert.ToInt32(Math.Round(lastPointerPosition.X)) > idx
