@@ -17,5 +17,12 @@ namespace LasAnalyzer.Models
         public ScatterSeries<ObservablePoint> ScatterBasePoint { get; set; }
         public ScatterSeries<ObservablePoint> ScatterMaxPoint { get; set; }
         public ScatterSeries<ObservablePoint> ScatterMinPoint { get; set; }
+
+        public ExtremumPoints()
+        {
+            ScatterBasePoint = new ScatterSeries<ObservablePoint>();
+            ScatterMaxPoint = new ScatterSeries<ObservablePoint>();
+            ScatterMinPoint = new ScatterSeries<ObservablePoint>();
+        }
     }
 }

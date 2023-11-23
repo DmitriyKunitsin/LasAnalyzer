@@ -150,9 +150,13 @@ namespace LasAnalyzer.Services.Graphics
                 if (chart.Series.Count() > 1)
                 {
                     // todo: spread to another methods
-                    NearlyExtrema = ((ScatterSeries<ObservablePoint>[])chart.Series.Skip(3)).ToList()
-                        .Where(scatterPoint => scatterPoint?.Values?.Count() != 0)
-                        .OrderBy(scatterPoint => GetDistanceToPointer(scatterPoint.Values.First(), lastPointerPosition)).First();
+                    NearlyExtrema = chart.Series
+                        .OfType<ScatterSeries<ObservablePoint>>()
+                        .Skip(2)
+                        .SelectMany(scatterSeries => scatterSeries?.Values)
+                        .Where(point => point != null)
+                        .OrderBy(point => GetDistanceToPointer(point, lastPointerPosition))
+                        .First();
 
                     var idx = ((LineSeries<double?>)chart.Series.ToList()[0]).Values.Count() - 1;
                     idx = Convert.ToInt32(Math.Round(lastPointerPosition.X)) > idx
