@@ -153,10 +153,11 @@ namespace LasAnalyzer.Services.Graphics
                     NearlyExtrema = chart.Series
                         .OfType<ScatterSeries<ObservablePoint>>()
                         .Skip(2)
+                        .Where(point => point.Values != null)
                         .SelectMany(scatterSeries => scatterSeries?.Values)
-                        .Where(point => point != null)
                         .OrderBy(point => GetDistanceToPointer(point, lastPointerPosition))
                         .First();
+                    
 
                     var idx = ((LineSeries<double?>)chart.Series.ToList()[0]).Values.Count() - 1;
                     idx = Convert.ToInt32(Math.Round(lastPointerPosition.X)) > idx
