@@ -83,6 +83,7 @@ namespace LasAnalyzer.Services
             string farProbeThreshold
         )
         {
+            // todo: need refactoring of this func
             List<byte[]> chartImageDatas = new List<byte[]>()
                 {
                     createChartImage(graphService.GraphNearProbe.Data, graphService.GraphNearProbe.Title),
@@ -102,8 +103,10 @@ namespace LasAnalyzer.Services
             bool isCooling = false;
             int minLeft = 0;
             int minRight = 0;
+            var thresholdExceeded = false;
             foreach (var item in results)
             {
+                thresholdExceeded = thresholdExceeded || item.ThresholdExceeded;
                 if (item.TempType == TempType.Heating)
                 {
                     isHeating = true;
@@ -115,14 +118,12 @@ namespace LasAnalyzer.Services
                     minRight = Convert.ToInt32(item.TemperBase);
                 }
             }
+            var thresholdExceededStr = thresholdExceeded ? "превышает" : "не превышает";
             var max = graphService.GraphTemperature.Data.Max();
             var heatRange = isHeating ? $"от {minLeft} до {max} градусов" : "";
             var coolRange = isCooling ? $"от {max} до {minRight} градусов" : "";
             var Kek = isHeating && isCooling ? "и " : "";
-
             var tempRange = $"{heatRange} {Kek}{coolRange}";
-            // todo: если только 1 таблица то выйдет из массива
-            var conditionForConclusion = results[0].ThresholdExceeded || results[1].ThresholdExceeded ? "превышает" : "не превышает";
             var departureThreshold = deviceType == DeviceType.Gamma ? 5 : 6;
 
             ReportModel reportModel = new ReportModel
@@ -136,7 +137,7 @@ namespace LasAnalyzer.Services
                 FarProbeTitle = farProbeTitle,
                 Graphs = chartImageDatas,
                 Results = results,
-                Conclusion = $"Температурный уход сигналов {nearProbeTitle}, {farProbeTitle} и {farProbeTitle}/{nearProbeTitle} в диапазоне температур {tempRange} {conditionForConclusion} {departureThreshold}%."
+                Conclusion = $"Температурный уход сигналов {nearProbeTitle}, {farProbeTitle} и {farProbeTitle}/{nearProbeTitle} в диапазоне температур {tempRange} {thresholdExceededStr} {departureThreshold}%."
             };
 
             return reportModel;

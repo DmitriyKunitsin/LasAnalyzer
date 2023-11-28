@@ -29,6 +29,12 @@ namespace LasAnalyzer.Services.Graphics
             get => _probeSeries;
             set => this.RaiseAndSetIfChanged(ref _probeSeries, value);
         }
+        private Axis[] yAxis;
+        public Axis[] YAxis
+        {
+            get => yAxis;
+            set => this.RaiseAndSetIfChanged(ref yAxis, value);
+        }
         public LineSeries<double?> LineSeries { get; set; }
         public ScatterSeries<ObservablePoint> ScatterSeries { get; set; }
         public List<double?> Data { get; set; }
@@ -85,6 +91,11 @@ namespace LasAnalyzer.Services.Graphics
             };
 
             Title = title;
+
+            YAxis = new[]
+            {
+                new Axis()
+            };
 
             LineSeries = new LineSeries<double?>();
 
@@ -144,6 +155,15 @@ namespace LasAnalyzer.Services.Graphics
 
             Thumbs[1].Xi = data.Count - 1;
             Thumbs[1].Xj = data.Count - 1;
+
+            YAxis = new[]
+            {
+                new Axis
+                {
+                    MaxLimit = data.Max() * 1.1,
+                    MinLimit = data.Min() * 0.9
+                }
+            };
 
             LineSeries = new LineSeries<double?>
             {

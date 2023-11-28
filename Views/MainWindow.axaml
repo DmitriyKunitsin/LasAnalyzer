@@ -74,9 +74,9 @@
 			<Border Grid.Row="0" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding GraphServiceGamma.GraphNearProbe.ProbeSeries}"
-					x:Name="{Binding Title}"
-					Title="{Binding Title}"
-					YAxes="{Binding YAxis}"
+					x:Name="{Binding GraphServiceGamma.GraphNearProbe.Title}"
+					Title="{Binding GraphServiceGamma.GraphNearProbe.Title}"
+					YAxes="{Binding GraphServiceGamma.GraphNearProbe.YAxis}"
 					Sections="{Binding GraphServiceGamma.GraphNearProbe.Thumbs}"
 					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
 					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
@@ -88,6 +88,7 @@
 			<Border Grid.Row="1" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding GraphServiceGamma.GraphFarProbe.ProbeSeries}"
+					YAxes="{Binding GraphServiceGamma.GraphFarProbe.YAxis}"
 					Sections="{Binding GraphServiceGamma.GraphFarProbe.Thumbs}"
 					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
 					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
