@@ -25,6 +25,19 @@ namespace LasAnalyzer.Services.Graphics
             get => _probeSeries;
             set => this.RaiseAndSetIfChanged(ref _probeSeries, value);
         }
+
+        private Axis[] yAxis;
+        public Axis[] YAxis
+        {
+            get => yAxis;
+            set => this.RaiseAndSetIfChanged(ref yAxis, value);
+        }
+        private Axis[] xAxis;
+        public Axis[] XAxis
+        {
+            get => xAxis;
+            set => this.RaiseAndSetIfChanged(ref xAxis, value);
+        }
         public LineSeries<double?> LineSeries { get; set; }
         public List<double?> Data { get; set; }
         public string Title { get; set; }
@@ -69,6 +82,16 @@ namespace LasAnalyzer.Services.Graphics
             };
 
             Title = title;
+
+            YAxis = new[]
+            {
+                new Axis()
+            };
+
+            XAxis = new[]
+            {
+                new Axis()
+            };
 
             LineSeries = new LineSeries<double?>();
 
@@ -130,6 +153,45 @@ namespace LasAnalyzer.Services.Graphics
 
             Thumbs[1].Xi = Data.Count - 1;
             Thumbs[1].Xj = Data.Count - 1;
+
+            var solidColorPaintFat = new SolidColorPaint
+            {
+                Color = SKColors.Black,
+                StrokeThickness = 2,
+            };
+            var solidColorPaintSlim = new SolidColorPaint
+            {
+                Color = SKColors.Black,
+                StrokeThickness = 0.5f,
+            };
+
+            YAxis = new[]
+            {
+                new Axis
+                {
+                    Name = Title,
+                    MaxLimit = Data.Max() * 1.1,
+                    MinLimit = Data.Min() * 0.9,
+
+                    SeparatorsPaint = solidColorPaintFat,
+                    SubseparatorsPaint = solidColorPaintSlim,
+                    SubseparatorsCount = 5,
+                    TicksPaint = solidColorPaintFat,
+                    SubticksPaint = solidColorPaintSlim
+                }
+            };
+
+            XAxis = new[]
+            {
+                new Axis
+                {
+                    SeparatorsPaint = solidColorPaintFat,
+                    SubseparatorsPaint = solidColorPaintSlim,
+                    SubseparatorsCount = 5,
+                    TicksPaint = solidColorPaintFat,
+                    SubticksPaint = solidColorPaintSlim
+                }
+            };
 
             LineSeries = new LineSeries<double?>
             {

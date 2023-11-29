@@ -58,6 +58,16 @@ namespace LasAnalyzer.ViewModels
         //public GraphData LasDataForGamma { get; set; }
         //public GraphData LasDataForNeutronic { get; set; }
 
+        public DrawMarginFrame Frame { get; set; } =
+        new()
+        {
+            Stroke = new SolidColorPaint
+            {
+                Color = SKColors.Black,
+                StrokeThickness = 1
+            }
+        };
+
         public ZoomAndPanMode ZoomMode
         {
             get => _zoomMode;
@@ -112,29 +122,6 @@ namespace LasAnalyzer.ViewModels
             set => this.RaiseAndSetIfChanged(ref isNeutronicSelected, value);
         }
 
-        public LabelVisual Title { get; set; } =
-        new LabelVisual
-        {
-            Text = "My chart title",
-            TextSize = 25,
-            Padding = new Padding(15),
-            Paint = new SolidColorPaint(SKColors.DarkSlateGray)
-        };
-
-        private LineGeometry line;
-        public LineGeometry Line
-        {
-            get => line;
-            set => this.RaiseAndSetIfChanged(ref line, value);
-        }
-
-        private Axis[] invisibleY;
-        public Axis[] YAxis
-        {
-            get => invisibleY;
-            set => this.RaiseAndSetIfChanged(ref invisibleY, value);
-        }
-
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGraphWindowCommand { get; }
         public ReactiveCommand<Unit, Unit> CreateAndSaveReportCommand { get; }
@@ -167,15 +154,6 @@ namespace LasAnalyzer.ViewModels
 
             //CropGammaDataCommand = ReactiveCommand.Create(GraphServiceGamma.CropData);
             //CropNeutronicDataCommand = ReactiveCommand.Create(GraphServiceNeutronic.CropData);
-
-            YAxis = new[]
-                {
-                    new Axis
-                    {
-                        //MaxLimit = LasDataForGamma.NearProbe.Max() * 1.1,
-                        //MinLimit = LasDataForGamma.NearProbe.Min() * 0.9
-                    }
-                };
 
             ZoomMode = ZoomAndPanMode.X;
             WindowSize = 60;

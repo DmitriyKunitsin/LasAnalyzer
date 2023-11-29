@@ -8,6 +8,7 @@ using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Drawing;
 using LiveChartsCore.SkiaSharpView.Painting;
+using LiveChartsCore.SkiaSharpView.Painting.Effects;
 using ReactiveUI;
 using SkiaSharp;
 using System;
@@ -34,6 +35,12 @@ namespace LasAnalyzer.Services.Graphics
         {
             get => yAxis;
             set => this.RaiseAndSetIfChanged(ref yAxis, value);
+        }
+        private Axis[] xAxis;
+        public Axis[] XAxis
+        {
+            get => xAxis;
+            set => this.RaiseAndSetIfChanged(ref xAxis, value);
         }
         public LineSeries<double?> LineSeries { get; set; }
         public ScatterSeries<ObservablePoint> ScatterSeries { get; set; }
@@ -97,6 +104,11 @@ namespace LasAnalyzer.Services.Graphics
                 new Axis()
             };
 
+            XAxis = new[]
+            {
+                new Axis()
+            };
+
             LineSeries = new LineSeries<double?>();
 
             ProbeSeries = new ISeries[]
@@ -156,12 +168,43 @@ namespace LasAnalyzer.Services.Graphics
             Thumbs[1].Xi = data.Count - 1;
             Thumbs[1].Xj = data.Count - 1;
 
+            var solidColorPaintFat = new SolidColorPaint
+            {
+                Color = SKColors.Black,
+                StrokeThickness = 2,
+            };
+            var solidColorPaintSlim = new SolidColorPaint
+            {
+                Color = SKColors.Black,
+                StrokeThickness = 0.5f,
+            };
+
             YAxis = new[]
             {
                 new Axis
                 {
-                    MaxLimit = data.Max() * 1.1,
-                    MinLimit = data.Min() * 0.9
+                    Name = Title,
+                    MaxLimit = data.Max() * 1.005,
+                    MinLimit = data.Min() * 0.995,
+                    //MinStep = 1,
+
+                    SeparatorsPaint = solidColorPaintFat,
+                    SubseparatorsPaint = solidColorPaintSlim,
+                    SubseparatorsCount = 4,
+                    TicksPaint = solidColorPaintFat,
+                    SubticksPaint = solidColorPaintSlim
+                }
+            };
+
+            XAxis = new[]
+            {
+                new Axis
+                {
+                    SeparatorsPaint = solidColorPaintFat,
+                    SubseparatorsPaint = solidColorPaintSlim,
+                    SubseparatorsCount = 4,
+                    TicksPaint = solidColorPaintFat,
+                    SubticksPaint = solidColorPaintSlim
                 }
             };
 
