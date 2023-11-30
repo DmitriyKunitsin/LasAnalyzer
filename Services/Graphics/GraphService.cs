@@ -231,5 +231,20 @@ namespace LasAnalyzer.Services.Graphics
             GraphFarProbe.ChangeThumbPosition(lastPointerPosition);
             GraphFarToNearProbeRatio.ChangeThumbPosition(lastPointerPosition);
         }
+
+        internal void RebuildGraphs()
+        {
+            GraphTemperature.UpdateGraph();
+
+            CoolingStartIndex = GraphTemperature.TransitionIndex;
+            TemperatureType = GraphTemperature.TemperatureType;
+
+            var baseHeatIndex = GraphTemperature.BaseHeatIndex;
+            var baseCoolIndex = GraphTemperature.BaseCoolIndex;
+
+            GraphNearProbe.UpdateGraphs(CoolingStartIndex, baseHeatIndex, baseCoolIndex);
+            GraphFarProbe.UpdateGraphs(CoolingStartIndex, baseHeatIndex, baseCoolIndex);
+            GraphFarToNearProbeRatio.UpdateGraphs(CoolingStartIndex, baseHeatIndex, baseCoolIndex);
+        }
     }
 }

@@ -58,16 +58,6 @@ namespace LasAnalyzer.ViewModels
         //public GraphData LasDataForGamma { get; set; }
         //public GraphData LasDataForNeutronic { get; set; }
 
-        public DrawMarginFrame Frame { get; set; } =
-        new()
-        {
-            Stroke = new SolidColorPaint
-            {
-                Color = SKColors.Black,
-                StrokeThickness = 1
-            }
-        };
-
         public ZoomAndPanMode ZoomMode
         {
             get => _zoomMode;
@@ -123,12 +113,13 @@ namespace LasAnalyzer.ViewModels
         }
 
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
+        public ReactiveCommand<Unit, Unit> RebuildGraphsCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGraphWindowCommand { get; }
         public ReactiveCommand<Unit, Unit> CreateAndSaveReportCommand { get; }
 
-        public ReactiveCommand<Unit, Unit> EnableMovementChartComand { get; }
-        public ReactiveCommand<Unit, Unit> EnableMovementVerticalLinesComand { get; }
-        public ReactiveCommand<Unit, Unit> EnableMovementPointsComand { get; }
+        public ReactiveCommand<Unit, Unit> EnableMovementChartCommand { get; }
+        public ReactiveCommand<Unit, Unit> EnableMovementVerticalLinesCommand { get; }
+        public ReactiveCommand<Unit, Unit> EnableMovementPointsCommand { get; }
 
         //public ReactiveCommand<Unit, Unit> CropGammaDataCommand { get; }
         //public ReactiveCommand<Unit, Unit> CropNeutronicDataCommand { get; }
@@ -139,6 +130,7 @@ namespace LasAnalyzer.ViewModels
             _docxWriter = new DocxWriter();
 
             OpenLasFileCommand = ReactiveCommand.CreateFromTask(GetLasData);
+            RebuildGraphsCommand = ReactiveCommand.Create(RebuildGraphs);
             OpenGraphWindowCommand = ReactiveCommand.Create(OpenGraphWindow);
             CreateAndSaveReportCommand = ReactiveCommand.Create(CreateAndSaveReport);
 
@@ -148,9 +140,9 @@ namespace LasAnalyzer.ViewModels
             GraphServiceGamma = new GraphService(("RSD", "RLD"));
             GraphServiceNeutronic = new GraphService(("NTNC", "FTNC"));
 
-            EnableMovementChartComand = ReactiveCommand.Create(EnableMovementChart);
-            EnableMovementVerticalLinesComand = ReactiveCommand.Create(EnableMovementVerticalLines);
-            EnableMovementPointsComand = ReactiveCommand.Create(EnableMovementPoints);
+            EnableMovementChartCommand = ReactiveCommand.Create(EnableMovementChart);
+            EnableMovementVerticalLinesCommand = ReactiveCommand.Create(EnableMovementVerticalLines);
+            EnableMovementPointsCommand = ReactiveCommand.Create(EnableMovementPoints);
 
             //CropGammaDataCommand = ReactiveCommand.Create(GraphServiceGamma.CropData);
             //CropNeutronicDataCommand = ReactiveCommand.Create(GraphServiceNeutronic.CropData);
@@ -197,7 +189,13 @@ namespace LasAnalyzer.ViewModels
         //{
         //    LasDataForGamma = graphData; /// for graph window
         //}
-        
+
+        private void RebuildGraphs()
+        {
+            SetGammaData();
+            SetNeutronicData();
+        }
+
         private void CreateAndSaveReport()
         {
             ReportWrapper ReportWrapper = new ReportWrapper();

@@ -47,16 +47,16 @@
 			</StackPanel>
 
 			<StackPanel Grid.Row="2" HorizontalAlignment="Center">
-				<Button Content="Перемещать график" Command="{Binding EnableMovementChartComand}"/>
-				<Button Content="Перемещать верт линии" Command="{Binding EnableMovementVerticalLinesComand}"/>
-				<Button Content="Перемещать точки" Command="{Binding EnableMovementPointsComand}"/>
+				<Button Content="Перемещать график" Command="{Binding EnableMovementChartCommand}"/>
+				<Button Content="Перемещать верт линии" Command="{Binding EnableMovementVerticalLinesCommand}"/>
+				<Button Content="Перемещать точки" Command="{Binding EnableMovementPointsCommand}"/>
 			</StackPanel>
 		
 			<StackPanel Grid.Row="3" HorizontalAlignment="Center">
 				<Button Content="Открыть LAS File" Command="{Binding OpenLasFileCommand}"/>
 				<!--<Button Content="Показать графики" Command="{Binding OpenGraphWindowCommand}"/>-->
 				<!--<Button Content="Показать расчеты" Command="{Binding OpenResultTableWindowCommand}"/>-->
-				<Button Content="Перестроить графики" />
+				<Button Content="Перестроить графики" Command="{Binding RebuildGraphsCommand}"/>
 				<Button Content="Проставить макс мин" />
 				<Button Content="Сохранить в документ" Command="{Binding CreateAndSaveReportCommand}"/>
 			</StackPanel>
@@ -82,7 +82,8 @@
 					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
 					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
-					DrawMarginFrame="{Binding Frame}"
+					DrawMarginFrame="{Binding GraphServiceGamma.GraphNearProbe.Frame}"
+					TooltipPosition="Hidden"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>
@@ -96,7 +97,8 @@
 					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
 					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
-					DrawMarginFrame="{Binding Frame}"
+					DrawMarginFrame="{Binding GraphServiceGamma.GraphFarProbe.Frame}"
+					TooltipPosition="Hidden"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>
@@ -110,7 +112,8 @@
 					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
 					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
-					DrawMarginFrame="{Binding Frame}"
+					DrawMarginFrame="{Binding GraphServiceGamma.GraphFarToNearProbeRatio.Frame}"
+					TooltipPosition="Hidden"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>
@@ -124,7 +127,8 @@
 					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
 					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
-					DrawMarginFrame="{Binding Frame}"
+					DrawMarginFrame="{Binding GraphServiceGamma.GraphTemperature.Frame}"
+					TooltipPosition="Hidden"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>
@@ -152,7 +156,7 @@
 					PointerMoveCommand="{Binding GraphServiceNeutronic.PointerMoveCommand}"
 					PointerPressedCommand="{Binding GraphServiceNeutronic.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceNeutronic.PointerUpCommand}"
-					DrawMarginFrame="{Binding Frame}"
+					DrawMarginFrame="{Binding GraphServiceNeutronic.GraphNearProbe.Frame}"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>
@@ -166,7 +170,7 @@
 					PointerMoveCommand="{Binding GraphServiceNeutronic.PointerMoveCommand}"
 					PointerPressedCommand="{Binding GraphServiceNeutronic.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceNeutronic.PointerUpCommand}"
-					DrawMarginFrame="{Binding Frame}"
+					DrawMarginFrame="{Binding GraphServiceNeutronic.GraphFarProbe.Frame}"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>
@@ -180,7 +184,7 @@
 					PointerMoveCommand="{Binding GraphServiceNeutronic.PointerMoveCommand}"
 					PointerPressedCommand="{Binding GraphServiceNeutronic.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceNeutronic.PointerUpCommand}"
-					DrawMarginFrame="{Binding Frame}"
+					DrawMarginFrame="{Binding GraphServiceNeutronic.GraphFarToNearProbeRatio.Frame}"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>
@@ -194,7 +198,7 @@
 					PointerMoveCommand="{Binding GraphServiceNeutronic.PointerMoveCommand}"
 					PointerPressedCommand="{Binding GraphServiceNeutronic.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceNeutronic.PointerUpCommand}"
-					DrawMarginFrame="{Binding Frame}"
+					DrawMarginFrame="{Binding GraphServiceNeutronic.GraphTemperature.Frame}"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>

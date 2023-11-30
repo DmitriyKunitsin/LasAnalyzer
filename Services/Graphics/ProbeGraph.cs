@@ -42,6 +42,8 @@ namespace LasAnalyzer.Services.Graphics
             get => xAxis;
             set => this.RaiseAndSetIfChanged(ref xAxis, value);
         }
+        public DrawMarginFrame Frame { get; set; }
+
         public LineSeries<double?> LineSeries { get; set; }
         public ScatterSeries<ObservablePoint> ScatterSeries { get; set; }
         public List<double?> Data { get; set; }
@@ -107,6 +109,15 @@ namespace LasAnalyzer.Services.Graphics
             XAxis = new[]
             {
                 new Axis()
+            };
+
+            Frame = new()
+            {
+                Stroke = new SolidColorPaint
+                {
+                    Color = SKColors.Black,
+                    StrokeThickness = 1
+                }
             };
 
             LineSeries = new LineSeries<double?>();
@@ -179,6 +190,16 @@ namespace LasAnalyzer.Services.Graphics
                 StrokeThickness = 0.5f,
             };
 
+            var maxMinDiff = (data.Max() - data.Min()).Value;
+            double step = 0;
+            if (maxMinDiff >= 10)
+                step = Math.Round(maxMinDiff / 4);
+            else
+                step = Math.Round(maxMinDiff / 4, 2);
+
+            if (maxMinDiff >= 10 && maxMinDiff % 5 != 0)
+                step = Math.Round(step / 5) * 5;
+            
             YAxis = new[]
             {
                 new Axis
@@ -186,8 +207,14 @@ namespace LasAnalyzer.Services.Graphics
                     Name = Title,
                     MaxLimit = data.Max() * 1.005,
                     MinLimit = data.Min() * 0.995,
-                    //MinStep = 1,
+                    CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
+                    CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
+                    CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
+                    CrosshairSnapEnabled = true,
+                    Labeler = value => maxMinDiff >= 10 ? value.ToString("N0") : value.ToString("N3"),
 
+                    ForceStepToMin = true,
+                    MinStep = step,
                     SeparatorsPaint = solidColorPaintFat,
                     SubseparatorsPaint = solidColorPaintSlim,
                     SubseparatorsCount = 4,
@@ -200,11 +227,25 @@ namespace LasAnalyzer.Services.Graphics
             {
                 new Axis
                 {
+                    CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
+                    CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
+                    CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
+                    Labeler = value => value.ToString("N0"),
+
                     SeparatorsPaint = solidColorPaintFat,
                     SubseparatorsPaint = solidColorPaintSlim,
                     SubseparatorsCount = 4,
                     TicksPaint = solidColorPaintFat,
                     SubticksPaint = solidColorPaintSlim
+                }
+            };
+
+            Frame = new()
+            {
+                Stroke = new SolidColorPaint
+                {
+                    Color = SKColors.Black,
+                    StrokeThickness = 1
                 }
             };
 
@@ -385,6 +426,11 @@ namespace LasAnalyzer.Services.Graphics
             Data = Data.Skip(Convert.ToInt32(Thumbs[0].Xi.Value)).ToList();
             Data = Data.Take(Convert.ToInt32(Thumbs[1].Xi.Value)).ToList();
 
+            SetProbeSeriesData(Data, coolingStartIndex, baseHeatIndex, baseCoolIndex);
+        }
+
+        public void UpdateGraphs(int coolingStartIndex, int baseHeatIndex, int baseCoolIndex)
+        {
             SetProbeSeriesData(Data, coolingStartIndex, baseHeatIndex, baseCoolIndex);
         }
 
