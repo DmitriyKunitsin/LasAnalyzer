@@ -36,22 +36,21 @@ namespace LasAnalyzer.Services
                 document.InsertParagraph("3. Дата испытаний: \t" + report.TestDate).FontSize(12);
                 document.InsertParagraph("4. Пороги: \t\tRSD – " + report.NearProbeThreshold + " мВ, RLD – " + report.FarProbeThreshold + " мВ").FontSize(12);
 
-                document.InsertParagraph(report.NearProbeTitle).FontSize(12);
+                document.InsertParagraph("5. " + report.NearProbeTitle).FontSize(12);
                 InsertChartImageToDocX(document, report.Graphs[0]);
-                document.InsertParagraph(report.FarProbeTitle).FontSize(12);
+                document.InsertParagraph("6. " + report.FarProbeTitle).FontSize(12);
                 InsertChartImageToDocX(document, report.Graphs[1]);
-                document.InsertParagraph($"{report.FarProbeTitle}/{report.NearProbeTitle}").FontSize(12);
+                document.InsertParagraph($"7. {report.FarProbeTitle}/{report.NearProbeTitle}").FontSize(12);
                 InsertChartImageToDocX(document, report.Graphs[2]);
-                document.InsertParagraph();
-                document.InsertParagraph("TEMPER").FontSize(12);
+                document.InsertParagraph("8. TEMPER").FontSize(12);
                 InsertChartImageToDocX(document, report.Graphs[3]);
 
                 document.InsertParagraph();
 
-                InsertResultTables(document, report);
+                int num = InsertResultTables(document, report);
                 document.InsertParagraph();
 
-                document.InsertParagraph("10. Выводы").FontSize(12);
+                document.InsertParagraph($"{num}. Выводы").FontSize(12);
                 document.InsertParagraph(report.Conclusion).FontSize(12);
                 document.InsertParagraph();
                 document.InsertParagraph("Термоиспытания провел:").FontSize(12);
@@ -65,16 +64,17 @@ namespace LasAnalyzer.Services
             var image = document.AddImage(new MemoryStream(imageBytes));
             Picture picture = image.CreatePicture();
             picture.Width = 500;
-            picture.Height = 175;
+            picture.Height = 180;
             document.InsertParagraph().AppendPicture(picture);
         }
 
-        private void InsertResultTables(DocX document, ReportModel report)
+        private int InsertResultTables(DocX document, ReportModel report)
         {
+            int num = 9;
             foreach (var resultTable in report.Results)
             {
                 var resultString = resultTable.TempType == TempType.Heating ? "при нагреве" : "при охлаждении";
-                document.InsertParagraph($"9. Результаты {resultString}").FontSize(12); ;
+                document.InsertParagraph($"{num}. Результаты {resultString}").FontSize(12);
 
                 var table = document.AddTable(resultTable.Results.Count + 1, 5);
                 table.Design = TableDesign.TableGrid;
@@ -108,7 +108,9 @@ namespace LasAnalyzer.Services
                     }
                 }
                 document.InsertTable(table);
+                num++;
             }
+            return num;
         }
 
         private Table SetFormulasAndHeaders(Table table, double? baseTemper, ReportModel report)

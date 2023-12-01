@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls.Primitives;
+using DynamicData.Aggregation;
 using LasAnalyzer.Models;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
@@ -168,7 +169,7 @@ namespace LasAnalyzer.Services.Graphics
             var solidColorPaintFat = new SolidColorPaint
             {
                 Color = SKColors.Black,
-                StrokeThickness = 2,
+                StrokeThickness = 1,
             };
             var solidColorPaintSlim = new SolidColorPaint
             {
@@ -176,33 +177,28 @@ namespace LasAnalyzer.Services.Graphics
                 StrokeThickness = 0.5f,
             };
 
-            var maxMinDiff = (Data.Max() - Data.Min()).Value;
-            double step = 0;
-            if (maxMinDiff >= 10)
-                step = Math.Round(maxMinDiff / 4);
-            else
-                step = Math.Round(maxMinDiff / 4, 2);
-
-            if (maxMinDiff >= 10 && maxMinDiff % 5 != 0)
-                step = Math.Round(step / 5) * 5;
+            var maxCef = 1.1;
+            var mincef = 0.9;
+            var step = Utils.GetStepForSeparators((Data.Max() * maxCef - Data.Min() * mincef).Value);
 
             YAxis = new[]
             {
                 new Axis
                 {
                     Name = Title,
-                    MaxLimit = Data.Max() * 1.1,
-                    MinLimit = Data.Min() * 0.9,
-                    CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
-                    CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
-                    CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
-                    CrosshairSnapEnabled = true,
+                    MaxLimit = Data.Max() * maxCef,
+                    MinLimit = Data.Min() * mincef,
+
+                    //CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
+                    //CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
+                    //CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
+                    //CrosshairSnapEnabled = true,
 
                     ForceStepToMin = true,
                     MinStep = step,
                     SeparatorsPaint = solidColorPaintFat,
                     SubseparatorsPaint = solidColorPaintSlim,
-                    SubseparatorsCount = 5,
+                    SubseparatorsCount = 4,
                     TicksPaint = solidColorPaintFat,
                     SubticksPaint = solidColorPaintSlim
                 }
@@ -212,14 +208,14 @@ namespace LasAnalyzer.Services.Graphics
             {
                 new Axis
                 {
-                    CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
-                    CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
-                    CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
-                    Labeler = value => value.ToString("N0"),
+                    //CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
+                    //CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
+                    //CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
+                    //Labeler = value => value.ToString("N0"),
 
                     SeparatorsPaint = solidColorPaintFat,
                     SubseparatorsPaint = solidColorPaintSlim,
-                    SubseparatorsCount = 5,
+                    SubseparatorsCount = 4,
                     TicksPaint = solidColorPaintFat,
                     SubticksPaint = solidColorPaintSlim
                 }

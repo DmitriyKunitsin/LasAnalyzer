@@ -199,7 +199,7 @@ namespace LasAnalyzer.ViewModels
         private void CreateAndSaveReport()
         {
             ReportWrapper ReportWrapper = new ReportWrapper();
-            var Reports = ReportWrapper.CreateAndSaveReports(
+            var Reports = ReportWrapper.PrepareReport(
                 LasData,
                 GraphServiceGamma,
                 GraphServiceNeutronic,

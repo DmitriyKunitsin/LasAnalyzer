@@ -18,7 +18,7 @@ namespace LasAnalyzer.Services
 {
     public class ReportWrapper
     {
-        public List<ReportModel> CreateAndSaveReports(
+        public List<ReportModel> PrepareReport(
             LasParser LasData,
             GraphService graphServiceGamma,
             GraphService graphServiceNeutronic,
@@ -164,10 +164,25 @@ namespace LasAnalyzer.Services
 
         private byte[] createChartImage(List<double?> data, string title)
         {
+            var solidColorPaintFat = new SolidColorPaint
+            {
+                Color = SKColors.Black,
+                StrokeThickness = 1,
+            };
+            var solidColorPaintSlim = new SolidColorPaint
+            {
+                Color = SKColors.Black,
+                StrokeThickness = 0.5f,
+            };
+
+            var maxCef = 1.1;
+            var mincef = 0.9;
+            var step = Utils.GetStepForSeparators((data.Max() * maxCef - data.Min() * mincef).Value);
+
             var cartesianChart = new SKCartesianChart
             {
-                Width = 1000,
-                Height = 350,
+                Width = 750,
+                Height = 270,
                 Series = new ISeries[]
                 {
                     new LineSeries<double?>
@@ -179,30 +194,52 @@ namespace LasAnalyzer.Services
                         Stroke = new SolidColorPaint
                         {
                             Color = SKColors.RoyalBlue,
-                            StrokeThickness = 3,
+                            StrokeThickness = 2,
                             ZIndex = 1
                         },
                         LineSmoothness = 0,
                         ZIndex = 1,
                     }
                 },
-                Title = new LabelVisual
-                {
-                    Text = title,
-                    TextSize = 30,
-                    Padding = new Padding(15),
-                    Paint = new SolidColorPaint(0xff303030)
-                },
+                //Title = new LabelVisual
+                //{
+                //    Text = title,
+                //    TextSize = 30,
+                //    Padding = new Padding(15),
+                //    Paint = new SolidColorPaint(0xff303030)
+                //},
                 YAxes = new[]
                 {
                     new Axis
                     {
-                        //MaxLimit = LasDataForGamma.NearProbe.Max() * 1.1,
-                        //MinLimit = LasDataForGamma.NearProbe.Min() * 0.9
+                        MaxLimit = data.Max() * maxCef,
+                        MinLimit = data.Min() * mincef,
+
+                        ForceStepToMin = true,
+                        MinStep = step,
+                        SeparatorsPaint = solidColorPaintFat,
+                        SubseparatorsCount = 4,
+                        TicksPaint = solidColorPaintFat,
+                        SubticksPaint = solidColorPaintSlim
                     }
                 },
-                LegendPosition = LiveChartsCore.Measure.LegendPosition.Right,
-                Background = SKColors.White
+                XAxes = new[]
+                {
+                    new Axis
+                    {
+                        SeparatorsPaint = solidColorPaintFat,
+                        TicksPaint = solidColorPaintFat,
+                        SubticksPaint = solidColorPaintSlim
+                    }
+                },
+                DrawMarginFrame = new DrawMarginFrame()
+                {
+                    Stroke = new SolidColorPaint
+                    {
+                        Color = SKColors.Black,
+                        StrokeThickness = 1
+                    }
+                },
             };
 
             return cartesianChart.GetImage().Encode().ToArray();

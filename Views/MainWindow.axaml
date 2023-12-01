@@ -8,7 +8,7 @@
         x:Class="LasAnalyzer.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="LasAnalyzer" Width="1600" Height="900">
+        Title="LasAnalyzer" Width="1600" Height="800">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
@@ -74,8 +74,6 @@
 			<Border Grid.Row="0" Grid.Column="1">
 				<lvc:CartesianChart
 					Series="{Binding GraphServiceGamma.GraphNearProbe.ProbeSeries}"
-					x:Name="{Binding GraphServiceGamma.GraphNearProbe.Title}"
-					Title="{Binding GraphServiceGamma.GraphNearProbe.Title}"
 					XAxes="{Binding GraphServiceGamma.GraphNearProbe.XAxis}"
 					YAxes="{Binding GraphServiceGamma.GraphNearProbe.YAxis}"
 					Sections="{Binding GraphServiceGamma.GraphNearProbe.Thumbs}"
@@ -83,7 +81,6 @@
 					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
 					DrawMarginFrame="{Binding GraphServiceGamma.GraphNearProbe.Frame}"
-					TooltipPosition="Hidden"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>
@@ -98,7 +95,6 @@
 					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
 					DrawMarginFrame="{Binding GraphServiceGamma.GraphFarProbe.Frame}"
-					TooltipPosition="Hidden"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>
@@ -113,7 +109,6 @@
 					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
 					DrawMarginFrame="{Binding GraphServiceGamma.GraphFarToNearProbeRatio.Frame}"
-					TooltipPosition="Hidden"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>
@@ -128,7 +123,6 @@
 					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
 					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
 					DrawMarginFrame="{Binding GraphServiceGamma.GraphTemperature.Frame}"
-					TooltipPosition="Hidden"
 					ZoomMode="{Binding ZoomMode}">
 				</lvc:CartesianChart>
 			</Border>

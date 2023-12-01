@@ -182,7 +182,7 @@ namespace LasAnalyzer.Services.Graphics
             var solidColorPaintFat = new SolidColorPaint
             {
                 Color = SKColors.Black,
-                StrokeThickness = 2,
+                StrokeThickness = 1,
             };
             var solidColorPaintSlim = new SolidColorPaint
             {
@@ -190,28 +190,23 @@ namespace LasAnalyzer.Services.Graphics
                 StrokeThickness = 0.5f,
             };
 
-            var maxMinDiff = (data.Max() - data.Min()).Value;
-            double step = 0;
-            if (maxMinDiff >= 10)
-                step = Math.Round(maxMinDiff / 4);
-            else
-                step = Math.Round(maxMinDiff / 4, 2);
+            var maxCef = 1.1;
+            var mincef = 0.9;
+            var step = Utils.GetStepForSeparators((Data.Max() * maxCef - Data.Min() * mincef).Value);
 
-            if (maxMinDiff >= 10 && maxMinDiff % 5 != 0)
-                step = Math.Round(step / 5) * 5;
-            
             YAxis = new[]
             {
                 new Axis
                 {
                     Name = Title,
-                    MaxLimit = data.Max() * 1.005,
-                    MinLimit = data.Min() * 0.995,
-                    CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
-                    CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
-                    CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
-                    CrosshairSnapEnabled = true,
-                    Labeler = value => maxMinDiff >= 10 ? value.ToString("N0") : value.ToString("N3"),
+                    MaxLimit = data.Max() * maxCef,
+                    MinLimit = data.Min() * mincef,
+
+                    //CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
+                    //CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
+                    //CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
+                    //CrosshairSnapEnabled = true,
+                    //Labeler = value => maxMinDiff >= 10 ? value.ToString("N0") : value.ToString("N3"),
 
                     ForceStepToMin = true,
                     MinStep = step,
@@ -227,10 +222,11 @@ namespace LasAnalyzer.Services.Graphics
             {
                 new Axis
                 {
-                    CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
-                    CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
-                    CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
-                    Labeler = value => value.ToString("N0"),
+                    //CrosshairLabelsBackground = SKColors.DarkOrange.AsLvcColor(),
+                    //CrosshairLabelsPaint = new SolidColorPaint(SKColors.DarkRed, 1),
+                    //CrosshairPaint = new SolidColorPaint(SKColors.DarkOrange, 1),
+                    //CrosshairSnapEnabled = true,
+                    //Labeler = value => value.ToString("N0"),
 
                     SeparatorsPaint = solidColorPaintFat,
                     SubseparatorsPaint = solidColorPaintSlim,
