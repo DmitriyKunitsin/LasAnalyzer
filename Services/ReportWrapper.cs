@@ -124,7 +124,6 @@ namespace LasAnalyzer.Services
             var coolRange = isCooling ? $"от {max} до {minRight} градусов" : "";
             var Kek = isHeating && isCooling ? "и " : "";
             var tempRange = $"{heatRange} {Kek}{coolRange}";
-            var departureThreshold = deviceType == DeviceType.Gamma ? 5 : 6;
 
             ReportModel reportModel = new ReportModel
             {
@@ -137,7 +136,7 @@ namespace LasAnalyzer.Services
                 FarProbeTitle = farProbeTitle,
                 Graphs = chartImageDatas,
                 Results = results,
-                Conclusion = $"Температурный уход сигналов {nearProbeTitle}, {farProbeTitle} и {farProbeTitle}/{nearProbeTitle} в диапазоне температур {tempRange} {thresholdExceededStr} {departureThreshold}%."
+                Conclusion = $"Температурный уход сигналов {nearProbeTitle}, {farProbeTitle} и {farProbeTitle}/{nearProbeTitle} в диапазоне температур {tempRange} {thresholdExceededStr} 5%."
             };
 
             return reportModel;
@@ -154,10 +153,10 @@ namespace LasAnalyzer.Services
             var tableList = new List<ResultTable>();
 
             if ((graphService.TemperatureType == TempType.Heating || graphService.TemperatureType == TempType.Both) && isHeatingSelected)
-                tableList.Add(calculator.CalculateMetrics(graphService, deviceType, TempType.Heating));
+                tableList.Add(calculator.CalculateMetrics(graphService, TempType.Heating));
 
             if ((graphService.TemperatureType == TempType.Cooling || graphService.TemperatureType == TempType.Both) && isCoolingSelected)
-                tableList.Add(calculator.CalculateMetrics(graphService, deviceType, TempType.Cooling));
+                tableList.Add(calculator.CalculateMetrics(graphService, TempType.Cooling));
 
             return tableList;
         }

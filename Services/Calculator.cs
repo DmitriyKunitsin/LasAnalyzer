@@ -10,7 +10,7 @@ namespace LasAnalyzer.Services
 {
     public class Calculator
     {
-        public ResultTable CalculateMetrics(GraphService graphService, DeviceType deviceType, TempType tempType)
+        public ResultTable CalculateMetrics(GraphService graphService, TempType tempType)
         {
             if (graphService is null) return null;
 
@@ -69,15 +69,15 @@ namespace LasAnalyzer.Services
                 Results = results,
                 TempType = tempType,
                 TemperBase = graphService.GraphTemperature.Data[baseIndex],
-                ThresholdExceeded = IsThresholdExceeded(results, deviceType)
+                ThresholdExceeded = IsThresholdExceeded(results)
             };
 
             return resultTable;
         }
 
-        private bool IsThresholdExceeded(List<Result> results, DeviceType deviceType)
+        private bool IsThresholdExceeded(List<Result> results)
         {
-            var threshold = deviceType == DeviceType.Gamma ? 5 : 6;
+            var threshold = 5;
             if (
                 Math.Abs(results[5].NearProbe) > threshold || Math.Abs(results[6].NearProbe) > threshold ||
                 Math.Abs(results[5].FarProbe) > threshold || Math.Abs(results[6].FarProbe) > threshold ||
