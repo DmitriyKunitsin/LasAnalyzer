@@ -115,6 +115,7 @@ namespace LasAnalyzer.ViewModels
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
         public ReactiveCommand<Unit, Unit> RebuildGraphsCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGraphWindowCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenResultTableWindowCommand { get; }
         public ReactiveCommand<Unit, Unit> CreateAndSaveReportCommand { get; }
 
         public ReactiveCommand<Unit, Unit> EnableMovementChartCommand { get; }
@@ -132,6 +133,7 @@ namespace LasAnalyzer.ViewModels
             OpenLasFileCommand = ReactiveCommand.CreateFromTask(GetLasData);
             RebuildGraphsCommand = ReactiveCommand.Create(RebuildGraphs);
             OpenGraphWindowCommand = ReactiveCommand.Create(OpenGraphWindow);
+            OpenResultTableWindowCommand = ReactiveCommand.Create(OpenResultTableWindow);
             CreateAndSaveReportCommand = ReactiveCommand.Create(CreateAndSaveReport);
 
             //MessageBus.Current.Listen<GraphData>("GraphDataMessage")
@@ -185,6 +187,13 @@ namespace LasAnalyzer.ViewModels
             GraphServiceNeutronic.IsEnabledMovementPoints = !GraphServiceNeutronic.IsEnabledMovementPoints;
         }
 
+        private void OpenResultTableWindow()
+        {
+            var calculationTable = new CalculationTable();
+            //MessageBus.Current.SendMessage(LasDataForGamma, "GraphDataMessage");
+            calculationTable.Show();
+        }
+
         //private void ReceiveGraphData(GraphData graphData)
         //{
         //    LasDataForGamma = graphData; /// for graph window
@@ -207,9 +216,12 @@ namespace LasAnalyzer.ViewModels
                 IsCoolingSelected
             );
 
+            if (!Directory.Exists($"{Directory.GetCurrentDirectory()}\\output"))
+                Directory.CreateDirectory($"{Directory.GetCurrentDirectory()}\\output");
+
             foreach (var report in Reports)
             {
-                _docxWriter.CreateReport(report, $"{Directory.GetCurrentDirectory()}\\{report.SerialNumber}_{report.DeviceType}_{report.TestDate}.docx");
+                _docxWriter.CreateReport(report, $"{Directory.GetCurrentDirectory()}\\output\\{report.SerialNumber}_{report.DeviceType}_{report.TestDate}.docx");
             }
         }
 

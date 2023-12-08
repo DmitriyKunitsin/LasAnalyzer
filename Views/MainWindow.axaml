@@ -55,9 +55,9 @@
 			<StackPanel Grid.Row="3" HorizontalAlignment="Center">
 				<Button Content="Открыть LAS File" Command="{Binding OpenLasFileCommand}"/>
 				<!--<Button Content="Показать графики" Command="{Binding OpenGraphWindowCommand}"/>-->
-				<!--<Button Content="Показать расчеты" Command="{Binding OpenResultTableWindowCommand}"/>-->
 				<Button Content="Перестроить графики" Command="{Binding RebuildGraphsCommand}"/>
-				<Button Content="Проставить макс мин" />
+				<!--<Button Content="Проставить макс мин" />-->
+				<Button Content="Показать расчеты" Command="{Binding OpenResultTableWindowCommand}"/>
 				<Button Content="Сохранить в документ" Command="{Binding CreateAndSaveReportCommand}"/>
 			</StackPanel>
 		</Grid>

@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace LasAnalyzer.Views
 {
-    public partial class ReportWindow : Window
+    public partial class CalculationTable : Window
     {
-        public ReportWindow()
+        public CalculationTable()
         {
             InitializeComponent();
         }
