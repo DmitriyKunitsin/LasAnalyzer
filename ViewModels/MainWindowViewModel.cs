@@ -35,6 +35,7 @@ using LiveChartsCore.Measure;
 using LasAnalyzer.Services.Graphics;
 using System.Web;
 using Looch.LasParser;
+using System.Collections.ObjectModel;
 
 namespace LasAnalyzer.ViewModels
 {
@@ -53,6 +54,7 @@ namespace LasAnalyzer.ViewModels
         private bool isGammaSelected;
         private bool isNeutronicSelected;
         private ZoomAndPanMode _zoomMode;
+        private ObservableCollection<Person> resultTable;
 
         public LasParser LasData { get; set; }
         //public GraphData LasDataForGamma { get; set; }
@@ -110,6 +112,12 @@ namespace LasAnalyzer.ViewModels
         {
             get => isNeutronicSelected;
             set => this.RaiseAndSetIfChanged(ref isNeutronicSelected, value);
+        }
+
+        public ObservableCollection<Person> ResultTable
+        {
+            get => resultTable;
+            set => this.RaiseAndSetIfChanged(ref resultTable, value);
         }
 
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
@@ -189,14 +197,24 @@ namespace LasAnalyzer.ViewModels
 
         private void OpenResultTableWindow()
         {
+            var calculator = new Calculator();
+            var tableList = new List<ResultTable>();
+
+            if ((GraphServiceGamma.TemperatureType == TempType.Heating || GraphServiceGamma.TemperatureType == TempType.Both) && isHeatingSelected)
+                tableList.Add(calculator.CalculateMetrics(GraphServiceGamma, TempType.Heating));
+
+            if ((GraphServiceNeutronic.TemperatureType == TempType.Cooling || GraphServiceNeutronic.TemperatureType == TempType.Both) && isCoolingSelected)
+                tableList.Add(calculator.CalculateMetrics(GraphServiceNeutronic, TempType.Cooling));
+
+            //ResultTable = 
             var calculationTable = new CalculationTable();
-            //MessageBus.Current.SendMessage(LasDataForGamma, "GraphDataMessage");
             calculationTable.Show();
         }
 
+        // for graph window
         //private void ReceiveGraphData(GraphData graphData)
         //{
-        //    LasDataForGamma = graphData; /// for graph window
+        //    LasDataForGamma = graphData; 
         //}
 
         private void RebuildGraphs()

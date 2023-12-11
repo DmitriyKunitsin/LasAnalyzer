@@ -11,13 +11,13 @@ namespace LasAnalyzer.ViewModels
 {
     public class CalculationTableViewModel : ViewModelBase
     {
-        //private ObservableCollection<Person> people;
-        //public ObservableCollection<Person> People
-        //{
-        //    get => people;
-        //    set => this.RaiseAndSetIfChanged(ref people, value);
-        //}
-        public ObservableCollection<Person> People { get; }
+        private ObservableCollection<Person> people;
+        public ObservableCollection<Person> People
+        {
+            get => people;
+            set => this.RaiseAndSetIfChanged(ref people, value);
+        }
+        //public ObservableCollection<Person> People { get; }
 
         public CalculationTableViewModel()
         {

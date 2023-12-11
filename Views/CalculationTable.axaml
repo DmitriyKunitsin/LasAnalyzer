@@ -8,19 +8,23 @@
         x:DataType="vm:CalculationTableViewModel"
         Title="CalculationTable">
 
-    <Design.DataContext>
-           <vm:CalculationTableViewModel/>
-    </Design.DataContext>
+	<Window.DataContext>
+		<vm:MainWindowViewModel/>
+    </Window.DataContext>
 
-	<DataGrid Margin="20" ItemsSource="{Binding People}"
-          IsReadOnly="True"
-          CanUserResizeColumns="True"
-          CanUserSortColumns="False"
-          GridLinesVisibility="All"
-          BorderThickness="1" BorderBrush="Gray">
-		<DataGrid.Columns>
-			<DataGridTextColumn Header="First Name"  Binding="{Binding FirstName}"/>
-			<DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" />
-		</DataGrid.Columns>
-	</DataGrid>
+	<StackPanel>
+		<TextBlock Text="Размер окна:" VerticalAlignment="Center"/>
+	    <DataGrid Margin="20" ItemsSource="{Binding People}"
+              IsReadOnly="True"
+              CanUserResizeColumns="True"
+              CanUserSortColumns="False"
+              GridLinesVisibility="All"
+              BorderThickness="1" BorderBrush="Gray">
+		    <DataGrid.Columns>
+			    <DataGridTextColumn Header="First Name"  Binding="{Binding FirstName}"/>
+			    <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" />
+		    </DataGrid.Columns>
+	    </DataGrid>
+	</StackPanel>
+
 </Window>
