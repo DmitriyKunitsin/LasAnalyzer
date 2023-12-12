@@ -54,7 +54,8 @@ namespace LasAnalyzer.ViewModels
         private bool isGammaSelected;
         private bool isNeutronicSelected;
         private ZoomAndPanMode _zoomMode;
-        private ObservableCollection<Person> resultTable;
+        private ObservableCollection<ResultTable> resultTableGamma;
+        private ObservableCollection<ResultTable> resultTableNeutronic;
 
         public LasParser LasData { get; set; }
         //public GraphData LasDataForGamma { get; set; }
@@ -114,10 +115,16 @@ namespace LasAnalyzer.ViewModels
             set => this.RaiseAndSetIfChanged(ref isNeutronicSelected, value);
         }
 
-        public ObservableCollection<Person> ResultTable
+        public ObservableCollection<ResultTable> ResultTableGamma
         {
-            get => resultTable;
-            set => this.RaiseAndSetIfChanged(ref resultTable, value);
+            get => resultTableGamma;
+            set => this.RaiseAndSetIfChanged(ref resultTableGamma, value);
+        }
+
+        public ObservableCollection<ResultTable> ResultTableNeutronic
+        {
+            get => resultTableNeutronic;
+            set => this.RaiseAndSetIfChanged(ref resultTableNeutronic, value);
         }
 
         public ReactiveCommand<Unit, Unit> OpenLasFileCommand { get; }
@@ -163,6 +170,10 @@ namespace LasAnalyzer.ViewModels
             IsHeatingSelected = true;
             IsCoolingSelected = true;
             IsGammaSelected = true;
+
+            // for table window
+            ResultTableGamma = new ObservableCollection<ResultTable>();
+            ResultTableNeutronic = new ObservableCollection<ResultTable>();
         }
 
         private void EnableMovementChart()
@@ -197,18 +208,31 @@ namespace LasAnalyzer.ViewModels
 
         private void OpenResultTableWindow()
         {
-            var calculator = new Calculator();
-            var tableList = new List<ResultTable>();
-
-            if ((GraphServiceGamma.TemperatureType == TempType.Heating || GraphServiceGamma.TemperatureType == TempType.Both) && isHeatingSelected)
-                tableList.Add(calculator.CalculateMetrics(GraphServiceGamma, TempType.Heating));
-
-            if ((GraphServiceNeutronic.TemperatureType == TempType.Cooling || GraphServiceNeutronic.TemperatureType == TempType.Both) && isCoolingSelected)
-                tableList.Add(calculator.CalculateMetrics(GraphServiceNeutronic, TempType.Cooling));
-
-            //ResultTable = 
+            SetResultTables();
             var calculationTable = new CalculationTable();
             calculationTable.Show();
+        }
+
+        private void SetResultTables()
+        {
+            ResultTableGamma = GetResultTable(GraphServiceGamma);
+            ResultTableNeutronic = GetResultTable(GraphServiceNeutronic);
+        }
+
+        private ObservableCollection<ResultTable> GetResultTable(GraphService graphService)
+        {
+            if (graphService.GraphNearProbe.Data is null)
+                return new ObservableCollection<ResultTable>();
+
+            var calculator = new Calculator();
+            var resultTables = new ObservableCollection<ResultTable>();
+            if ((graphService.TemperatureType == TempType.Heating || graphService.TemperatureType == TempType.Both) && isHeatingSelected)
+                resultTables.Add(calculator.CalculateMetrics(graphService, TempType.Heating));
+
+            if ((graphService.TemperatureType == TempType.Cooling || graphService.TemperatureType == TempType.Both) && isCoolingSelected)
+                resultTables.Add(calculator.CalculateMetrics(graphService, TempType.Cooling));
+
+            return resultTables;
         }
 
         // for graph window

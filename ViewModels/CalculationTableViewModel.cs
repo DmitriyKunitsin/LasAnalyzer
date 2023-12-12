@@ -11,8 +11,8 @@ namespace LasAnalyzer.ViewModels
 {
     public class CalculationTableViewModel : ViewModelBase
     {
-        private ObservableCollection<Person> people;
-        public ObservableCollection<Person> People
+        private List<Person> people;
+        public List<Person> People
         {
             get => people;
             set => this.RaiseAndSetIfChanged(ref people, value);
@@ -27,7 +27,7 @@ namespace LasAnalyzer.ViewModels
                 new Person("Buzz", "Lightyear"),
                 new Person("James", "Kirk")
             };
-            People = new ObservableCollection<Person>(people);
+            People = new List<Person>(people);
         }
     }
 
