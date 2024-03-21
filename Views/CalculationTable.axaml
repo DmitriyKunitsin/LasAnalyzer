@@ -8,38 +8,40 @@
         x:DataType="vm:CalculationTableViewModel"
         Title="CalculationTable">
 
-	<Window.DataContext>
+	<Design.DataContext>
 		<vm:CalculationTableViewModel/>
-    </Window.DataContext>
+    </Design.DataContext>
 
-	<StackPanel>
-		<TextBlock Text="Размер окна:" VerticalAlignment="Center"/>
-	    <DataGrid Margin="20" ItemsSource="{Binding ResultTableGamma[0].Results}"
-              IsReadOnly="True"
-              CanUserResizeColumns="True"
-              CanUserSortColumns="False"
-              GridLinesVisibility="All"
-              BorderThickness="1" BorderBrush="Gray">
-		    <!--<DataGrid.Columns>
-			    <DataGridTextColumn Header="First Name"  Binding="{Binding FirstName}"/>
-			    <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" />
-		    </DataGrid.Columns>-->
-	    </DataGrid>
-	</StackPanel>
+	<Grid>
+		<StackPanel>
+			<TextBlock Text="Размер окна:" VerticalAlignment="Center"/>
+			<!--<DataGrid Margin="20" ItemsSource="{Binding ResultTableGamma[0].Results}"
+				  IsReadOnly="True"
+				  CanUserResizeColumns="True"
+				  CanUserSortColumns="False"
+				  GridLinesVisibility="All"
+				  BorderThickness="1" BorderBrush="Gray">
+				<DataGrid.Columns>
+					<DataGridTextColumn Header="First Name"  Binding="{Binding FirstName}"/>
+					<DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" />
+				</DataGrid.Columns>
+			</DataGrid>-->
+		</StackPanel>
 
-	<StackPanel>
-		<TextBlock Text="Размер окна:" VerticalAlignment="Center"/>
-		<DataGrid Margin="20" ItemsSource="{Binding ResultTableGamma[1].Results}"
-              IsReadOnly="True"
-              CanUserResizeColumns="True"
-              CanUserSortColumns="False"
-              GridLinesVisibility="All"
-              BorderThickness="1" BorderBrush="Gray">
-			<!--<DataGrid.Columns>
-			    <DataGridTextColumn Header="First Name"  Binding="{Binding FirstName}"/>
-			    <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" />
-		    </DataGrid.Columns>-->
-		</DataGrid>
-	</StackPanel>
+		<StackPanel>
+			<TextBlock Text="Размер окна:" VerticalAlignment="Center"/>
+			<!--<DataGrid Margin="20" ItemsSource="{Binding ResultTableGamma[1].Results}"
+				  IsReadOnly="True"
+				  CanUserResizeColumns="True"
+				  CanUserSortColumns="False"
+				  GridLinesVisibility="All"
+				  BorderThickness="1" BorderBrush="Gray">
+				<DataGrid.Columns>
+					<DataGridTextColumn Header="First Name"  Binding="{Binding FirstName}"/>
+					<DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" />
+				</DataGrid.Columns>
+			</DataGrid>-->
+		</StackPanel>
+	</Grid>
 
 </Window>

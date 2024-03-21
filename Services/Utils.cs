@@ -37,7 +37,7 @@ namespace LasAnalyzer.Services
 
                 step = step / 100;
             }
-
+            step = (step <= 0) ? 1 : step;
             return step;
         }
     }

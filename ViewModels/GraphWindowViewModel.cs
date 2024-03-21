@@ -48,7 +48,6 @@ namespace LasAnalyzer.ViewModels
 
         public ReactiveCommand<Unit, Unit> UpdateGraphs { get; set; }
 
-
         public GraphWindowViewModel()
         {
             MessageBus.Current.Listen<GraphData>("GraphDataMessage")
