@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>LasAnalyzer</id>
+    <version>1.0.0</version>
+    <authors>LasAnalyzer</authors>
+    <description>Package Description</description>
+    <repository type="git" commit="27b35cc99e5926a5e44719e0070c1391d8183e82" />
+    <dependencies>
+      <group targetFramework="net6.0">
+        <dependency id="Avalonia" version="11.0.5" exclude="Build,Analyzers" />
+        <dependency id="Avalonia.Controls.DataGrid" version="11.0.5" exclude="Build,Analyzers" />
+        <dependency id="Avalonia.Desktop" version="11.0.5" exclude="Build,Analyzers" />
+        <dependency id="Avalonia.Diagnostics" version="11.0.5" exclude="Build,Analyzers" />
+        <dependency id="Avalonia.Fonts.Inter" version="11.0.5" exclude="Build,Analyzers" />
+        <dependency id="Avalonia.ReactiveUI" version="11.0.5" exclude="Build,Analyzers" />
+        <dependency id="Avalonia.Themes.Fluent" version="11.0.5" exclude="Build,Analyzers" />
+        <dependency id="DocX" version="2.5.0" exclude="Build,Analyzers" />
+        <dependency id="LiveChartsCore.SkiaSharpView.Avalonia" version="2.0.0-rc1.2" exclude="Build,Analyzers" />
+        <dependency id="OxyPlot.Core" version="2.1.2" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="C:\Users\d.kunicin\Application\Projects\LasAnalyzer\bin\Debug\net6.0\LasAnalyzer.runtimeconfig.json" target="lib\net6.0\LasAnalyzer.runtimeconfig.json" />
+    <file src="C:\Users\d.kunicin\Application\Projects\LasAnalyzer\bin\Debug\net6.0\LasAnalyzer.dll" target="lib\net6.0\LasAnalyzer.dll" />
+  </files>
+</package>

@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>DocX</id>
+    <version>2.5.0</version>
+    <title>DocX</title>
+    <authors>Xceed</authors>
+    <owners>Xceed</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="file">LICENSE.txt</license>
+    <licenseUrl>https://aka.ms/deprecateLicenseUrl</licenseUrl>
+    <icon>Xceed_Logo_Retina-400x400.png</icon>
+    <readme>docs\readme.md</readme>
+    <projectUrl>https://github.com/xceedsoftware/docx</projectUrl>
+    <iconUrl>https://xceed.com/wp-content/uploads/2017/07/Xceed_Logo_Retina-400x400.png</iconUrl>
+    <description>DocX is a .NET library that allows developers to manipulate Microsoft Word files, in an easy and intuitive manner. DocX is fast, lightweight and best of all it does not require Microsoft Word or Office to be installed. v2.5.0 provides 11 bug fixes and improvements. Check out the professional edition, known as Xceed Words for .NET, on Xceed.com. It includes technical support, offer more features and options, and can create PDF files as well as convert Word files to PDF files.</description>
+    <summary>DocX is a fast and easy to use .NET library for creating or modifying Microsoft Word files without installing Word. v2.5.0 provides 11 bug fixes and improvements.</summary>
+    <releaseNotes>v2.5.0 provides 11 bug fixes and improvements. Released August 11, 2023.</releaseNotes>
+    <copyright>Copyright © Xceed Software Inc. 2007-2023</copyright>
+    <tags>DocX Microsoft Word Words PDF convert create modify</tags>
+    <dependencies>
+      <group targetFramework="net5.0">
+        <dependency id="System.IO.Packaging" version="4.5.0" />
+        <dependency id="System.Drawing.Common" version="5.0.2" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
